@@ -1,0 +1,212 @@
+---
+title: "Project proposal"
+author: "Team number 4"
+mainfont: Roboto
+output: pdf_document
+---
+
+
+```{r load-packages, message = FALSE}
+library(knitr)
+library(tidyverse)
+library(broom)
+library(htmltools)
+library(janitor)
+```
+
+```{r setup, include = FALSE}
+opts_chunk$set(echo=FALSE) # hide source code in the document
+```
+
+## 1. Introduction
+
+## 2. Data
+
+## 3. Preliminary results
+
+## 4. Data analysis plan
+
+## Appendix
+
+### Data README
+
+```{r include_data_readme, comment=''}
+cat(readLines('../data/README.md'), sep = '\n')
+```
+
+### Source code
+
+```{r, ref.label=knitr::all_labels(), echo=TRUE, eval=FALSE}
+Election_results <- read.csv("/Users/ofekzini/Documents/Data Engineering/Spring 2024/Intro to data analysis/Project/Git/public_housing_procurement_analysis/data/Translated/elect_results_t.csv")
+
+Properties_rooms <- read.csv("/Users/ofekzini/Documents/Data Engineering/Spring 2024/Intro to data analysis/Project/Git/public_housing_procurement_analysis/data/Translated/properties_by_rooms_t.csv")
+
+Purcheuses <- read.csv("/Users/ofekzini/Documents/Data Engineering/Spring 2024/Intro to data analysis/Project/Git/public_housing_procurement_analysis/data/Translated/property_purchases_t.csv")
+
+Vacant_apartments <- read.csv("/Users/ofekzini/Documents/Data Engineering/Spring 2024/Intro to data analysis/Project/Git/public_housing_procurement_analysis/data/Translated/vacant_apartments_t.csv")
+```
+
+```{r}
+Election_results
+
+Properties_rooms
+
+Purcheuses
+
+Vacant_apartments
+```
+Renaming the Hebrew variables:
+
+```{r}
+Election_results <- Election_results %>% 
+  rename(
+    Avoda = "אמת",
+    Hofesh_Calcali = "אצ",
+    Habait_Hayhudi = "ב",
+    Yahadut_Hator = "ג",
+    Balad = "ד",
+    Hadash = "ום",
+    Shahar_Koach = "ז",
+    Kama = "זך",
+    Koach_Lehaspia = "זנ",
+    Tsomet = "זץ",
+    Tsionot_Datit = "ט",
+    Israel_Hofshit = "י",
+    Hacalalit = "יז",
+    Ihud_Benei_Brit = "ינ",
+    Tsav_Hashaa = "יץ",
+    Gush_Tanachi = "יק",
+    Machane_Mamalachti = "כן",
+    Ani_VeAta = "ך",
+    Israel_beitenu = "ל",
+    Halicud = "מחל",
+    Merets = "מרצ",
+    Kvod_Haadam = "נז",
+    Nativ = "ני",
+    Shema = "נף",
+    Atsmaiem = "נץ",
+    Yesh_kivun = "נק",
+    Anachnu = "נר",
+    Reshima_Aravit = "עם",
+    Yesh_atid = "פה",
+    Piratim = "ף",
+    Tseirim_boarim = "צ",
+    Manhigut_Hevratit = "ץ",
+    Kol_Hasviva = "ק",
+    Halev_hayehudi = "קי",
+    Seder_hadash = "קך",
+    Kol_koveaa = "קנ",
+    Beomets = "קץ",
+    Reshimat_34 = "רז",
+    Shas = "שס",
+    Ale_yarok = "ת"
+  )
+
+# mutate the names of the cities that are in other datasets.
+Election_results <- Election_results %>% 
+  mutate(
+    settlement.name = case_when(
+    settlement.name =="horizons" ~ "Ofakim",
+    settlement.name =="The view of the Galilee" ~ "Nof_hagalil",
+    settlement.name == "my peace" ~  "Shlomi" ,
+    settlement.name == "routes" ~ "Netivot",
+    TRUE ~ settlement.name  # Keeps other values unchanged
+    )
+  )
+```
+
+
+```{r}
+Properties_rooms_Citynames <- Properties_rooms[!duplicated(Properties_rooms$CityLMSName_Translated),]
+
+#mutate the names of the cities
+Properties_rooms <- Properties_rooms %>% 
+  mutate(
+    CityLMSName_Translated = case_when(
+    CityLMSName_Translated =="horizons" ~ "Ofakim",
+    CityLMSName_Translated =="The view of the Galilee" ~ "Nof_hagalil",
+    CityLMSName_Translated == "my peace" ~  "Shlomi" ,
+    CityLMSName_Translated == "routes" ~ "Netivot",
+    TRUE ~ CityLMSName_Translated  # Keeps other values unchanged
+    )
+  )
+
+# replace the columns with translated columns
+Properties_rooms$CityLMSName <- Properties_rooms$CityLMSName_Translated
+Properties_rooms <- Properties_rooms %>% clean_names()
+
+# remove duplicated translated columns 
+Properties_rooms <- Properties_rooms[, !grepl("translated$", names(Properties_rooms))]
+
+
+# preform the same for the other datasets
+Purcheuses <- Purcheuses %>% 
+  mutate(
+    Lamas_name_translated = case_when(
+    Lamas_name_translated =="horizons" ~ "Ofakim",
+    Lamas_name_translated =="The view of the Galilee" ~ "Nof_hagalil",
+    Lamas_name_translated == "my peace" ~  "Shlomi" ,
+    Lamas_name_translated == "routes" ~ "Netivot",
+    TRUE ~ Lamas_name_translated  # Keeps other values unchanged
+    )
+  )
+
+Purcheuses$Lamas_name <- Purcheuses$Lamas_name_translated
+Purcheuses <- Purcheuses[, !grepl("translated$", names(Purcheuses))]
+Purcheuses <- Purcheuses %>% clean_names()
+
+Vacant_apartments <- Vacant_apartments %>% 
+  mutate(
+    CityLmsName_Translated = case_when(
+    CityLmsName_Translated =="horizons" ~ "Ofakim",
+    CityLmsName_Translated =="The view of the Galilee" ~ "Nof_hagalil",
+    CityLmsName_Translated == "my peace" ~  "Shlomi" ,
+    CityLmsName_Translated == "routes" ~ "Netivot",
+    TRUE ~ CityLmsName_Translated  # Keeps other values unchanged
+    )
+  )
+
+
+
+Vacant_apartments$CityLmsName <- Vacant_apartments$CityLmsName_Translated
+Vacant_apartments$CompanyName <- Vacant_apartments$CompanyName_Translated
+Vacant_apartments$StatusName <- Vacant_apartments$StatusName_Translated
+Vacant_apartments$PropertyTypeName <- Vacant_apartments$PropertyTypeName_Translated
+Vacant_apartments <- Vacant_apartments[, !grepl("translated$", names(Vacant_apartments))]
+Vacant_apartments <- Vacant_apartments %>% clean_names()
+
+```
+
+
+```{r}
+Vacant_apartments
+
+
+Purcheuses <- Purcheuses %>% 
+  rename(
+    city_lms_name = "lamas_name"
+  )
+Purcheuses
+
+Properties_rooms
+```
+
+
+```{r}
+Vacant_apartments_count <- Vacant_apartments %>% group_by(city_lms_name) %>%  mutate(count = n())
+
+ggplot(data = Vacant_apartments_count,
+       mapping = aes( x= reorder(city_lms_name ,-count), fill = factor (num_of_rooms))) +
+  geom_bar() + #fill='steelblue'
+  theme(axis.text.x=element_text(angle = -90, hjust = 0))
+```
+```{r}
+ggplot(data = Purcheuses,
+       mapping = aes( x= city_lms_name, fill = factor(year))) +
+  geom_bar() +
+  theme(axis.text.x=element_text(angle = -90, hjust = 0))
+```
+
+
+
+
