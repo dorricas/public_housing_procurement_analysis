@@ -2,8 +2,9 @@
 title: "Project proposal"
 author: "Team number 4"
 mainfont: Roboto
-# output: pdf_document
-output: html_document
+fontsize: 11pt
+output: pdf_document
+# output: html_document
 ---
 
 
@@ -13,6 +14,7 @@ library(tidyverse)
 library(broom)
 library(htmltools)
 library(janitor)
+library(kableExtra)
 ```
 
 ```{r setup, include = FALSE}
@@ -21,81 +23,24 @@ opts_chunk$set(echo=FALSE) # hide source code in the document
 
 ## 1. Introduction
 
-Public housing is government-owned housing units provided to low-income families, the elderly, and individuals with disabilities at affordable rent. The primary goal of public housing is to offer safe, decent, and sanitary living conditions for those who cannot afford market-rate housing.  
-Nowadays, multiple public housing companies (most of them are funded by the Israeli government) own a bit more than 50,000 public housing apartments around Israel. Unfortunately, at this moment, there are approximately 4,300 eligible individuals on the waiting list for an apartment, and an additional 25,000 eligible individuals (including 6,000 Holocaust survivors), with the average wait time to receive an apartment ranging from 3 to 4 years (and even longer in Jerusalem and the central region).  
+Public housing is government-owned housing units provided to low-income families, the elderly, and individuals with disabilities at affordable rent. The primary goal of public housing is to offer safe, decent, and sanitary living conditions for those who cannot afford market-rate housing.
+Nowadays, multiple public housing companies (most of them are funded by the Israeli government) own a bit more than 50,000 public housing apartments around Israel. Since the Ministry of Construction permits eligible individuals to obtain a housing unit only in the city where they are registered, there are currently approximately 4,300 eligible individuals on the waiting list for an apartment. Additionally, there are 25,000 more eligible individuals (including 6,000 Holocaust survivors) with an average waiting time of 3 to 4 years to receive an apartment, and even longer in Jerusalem and the central region.
 Those stats raises several questions about the public housing procurement policy lead by the government, our project will focus on this main question:  
 
-#### **Is there a relation between general elections results per city, to the public housing procurement policy in the same city?**  
+####  **Is there a relation between general elections results per city, to the public housing procurement policy in the same city?**  
 
-Our project aims to find a relation (if exist) between the elected government policy regarding public housing, to the top voted parties in each city.  
+Our project aims to find a relation (if exist) between the elected government policy regarding public housing, to the top voted parties in each city.
 Does the government buy more apartments in cities who voted for her? Does it buy less apartments in cities which didn’t vote for her?
-In which cities does the government sell more housing units?  
-In which regions there are more vacant apartments?  
-Did those regions vote for the elected government?  
-Since 2015, Israel has had 5 national elections, 4 governments and 7 different ministers leading the Ministry of Construction.  
-Research up to this point, focused on the shortage of apartments and the long waiting time, but we aim to find whether there is a hidden government policy behind the scenes, based on the elected government vote rate in each city.  
-Our approach to answer the question is to combine multiple data sets regarding public housing (property purchases, vacant apartments, etc) and data sets about general elections per city (most elected parties per city). Then, we wish to find patterns which can indicate certain government’s policies to help us find an answer.  
+In which cities does the government sell more housing units?
+In which regions there are more vacant apartments? Did those regions vote for the elected government?
+Since 2015, Israel has had 5 national elections, 4 governments and 7 different ministers leading the Ministry of Construction.
+Research up to this point, focused on the shortage of apartments and the long waiting time, but we aim to find whether there is a hidden government policy behind the scenes, based on the elected government vote rate in each city.
+Our approach to answer the question is to combine multiple data sets regarding public housing (property purchases, vacant apartments, etc) and data sets about general elections per city (most elected parties per city). Then, we wish to find patterns which can indicate certain government’s policies to help us find an answer.
+
 
 
 
 ## 2. Data
-
-#### Elections results:
-information about the last elections results in every ballot box in the country.  
-A brief explanation about the variables:
-
-- ballot id – id of each ballot box. an integer number.
-- Committee symbol – the ballot's geographical areas. Each area gets a number in range 1 to 20, ballot boxes inside IDF bases get 99.
-- settlement name – the settlement of the ballot box.
-- settlement ID – settlement's id of each ballot box.
-- Ballot num – a float number that identifies the ballot box in its settlement. It can repeat itself in different settlements.
-- BZB – number of eligible voters registered to the ballot box.
-- Voters – number of votes in the ballot box.
-- Rejected – number of uncounted votes in the ballot box.
-- Accepted – number of counted votes in the ballot box.
-- The rest of the variables are all the parties and how many votes each party got.
- 
- 
-#### Properties by rooms:
-Each record represents a settlement, a floor number, and the number of public housing properties in the country which are from that settlement and on that floor number.  
-A brief explanation about the variables:
-
-- CityLMSName – string of the settlement's name.
-- Floor – floor number. Integer.
-- OneRooms – number of one room apartments that exist in the settlement and on the floor number.
-- TwoRooms – number of two rooms apartments that exists in the settlement and on the floor number. And it continues this way until TenRooms, and MoreRooms (more than 10) variables.
- 
- 
- 
-#### Property purchases:
-Information about public housing property purchasing per settlement & year.  
-A brief explanation about the variables:
-
-- Lamas code – identification number of a settlement.
-- Year – 2017 – 2024.
-- Lamas name – the settlement's name.
-- 3 rooms apartments – number of purchased 3 rooms apartments.
-- 4+ rooms apartments – number of purchased 4 or more rooms apartments.
-- average price (NIS) 3 rooms apartments – the average purchase price of 3 rooms apartment.
-- average price (NIS) 4+ rooms apartments – the average purchase price of 4 or more rooms apartment.
- 
- 
-#### Vacant apartments:
-List of public housing apartments that have been available for more than 3 months.  
-A brief explanation about the variables:
-
-- CityLmsName – settlement's name.
-- CityLmsCode – settlement id, number.
-- NumOfRooms – number of rooms in the apartment (a float number because there're apartments with half-rooms).
-- Floor – settlement 's floor number.
-- TotalArea – area of the apartment in square meter.
-- CompanyName – the company that owns the apartment.
-- StatusChangeDate – date the apartment has been available from.
-
-
-## 3. Preliminary results
-
-### Source code
 
 ```{r include=FALSE}
 Election_results <- read.csv("../data/Translated/elect_results_t.csv")
@@ -291,7 +236,92 @@ Purcheuses
 Properties_rooms
 ```
 
-```{r}
+#### Elections results:
+information about the last elections results in every ballot box in the country.  
+A brief explanation about the variables:
+
+- ballot id – id of each ballot box. an integer number.
+- Committee symbol – the ballot's geographical areas. Each area gets a number in range 1 to 20, ballot boxes inside IDF bases get 99.
+- settlement name – the settlement of the ballot box.
+- settlement ID – settlement's id of each ballot box.
+- Ballot num – a float number that identifies the ballot box in its settlement. It can repeat itself in different settlements.
+- BZB – number of eligible voters registered to the ballot box.
+- Voters – number of votes in the ballot box.
+- Rejected – number of uncounted votes in the ballot box.
+- Accepted – number of counted votes in the ballot box.
+- The rest of the variables are all the parties and how many votes each party got.
+ 
+```{r include=FALSE, paged.print=TRUE}
+results_head <- head(Election_results,8)
+# knitr::kable(results_head, col.names = gsub("[.]", " ", names(results_head)))
+results_head
+```
+
+ 
+ 
+#### Properties by rooms:
+Each record represents a settlement, a floor number, and the number of public housing properties in the country which are from that settlement and on that floor number.  
+A brief explanation about the variables:
+
+- CityLMSName – string of the settlement's name.
+- Floor – floor number. Integer.
+- OneRooms – number of one room apartments that exist in the settlement and on the floor number.
+- TwoRooms – number of two rooms apartments that exists in the settlement and on the floor number. And it continues this way until TenRooms, and MoreRooms (more than 10) variables.
+
+
+```{r message=FALSE, warning=FALSE, include=FALSE, paged.print=TRUE}
+properties_head <- head(Properties_rooms,8)
+# knitr::kable(properties_head, col.names = gsub("[.]", " ", names(properties_head)))
+properties_head
+```
+ 
+ 
+#### Property purchases:
+Information about public housing property purchasing per settlement & year.  
+A brief explanation about the variables:
+
+- Lamas code – identification number of a settlement.
+- Year – 2017 – 2024.
+- Lamas name – the settlement's name.
+- 3 rooms apartments – number of purchased 3 rooms apartments.
+- 4+ rooms apartments – number of purchased 4 or more rooms apartments.
+- average price (NIS) 3 rooms apartments – the average purchase price of 3 rooms apartment.
+- average price (NIS) 4+ rooms apartments – the average purchase price of 4 or more rooms apartment.
+
+
+```{r message=FALSE, warning=FALSE, include=FALSE, paged.print=TRUE}
+purcheses_head <- head(Purcheuses,8)
+# knitr::kable(purcheses_head, col.names = gsub("[.]", " ", names(purcheses_head)))
+purcheses_head
+```
+
+ 
+#### Vacant apartments:
+List of public housing apartments that have been available for more than 3 months.  
+A brief explanation about the variables:
+
+- CityLmsName – settlement's name.
+- CityLmsCode – settlement id, number.
+- NumOfRooms – number of rooms in the apartment (a float number because there're apartments with half-rooms).
+- Floor – settlement 's floor number.
+- TotalArea – area of the apartment in square meter.
+- CompanyName – the company that owns the apartment.
+- StatusChangeDate – date the apartment has been available from.
+
+
+```{r message=FALSE, warning=FALSE, include=FALSE, paged.print=TRUE}
+vacant_apartments_head <- head(Vacant_apartments,8)
+# knitr::kable(vacant_apartments_head, col.names = gsub("[.]", " ", names(vacant_apartments_head)))
+vacant_apartments_head
+```
+
+
+## 3. Preliminary results
+
+### Source code
+
+
+```{r include=FALSE}
 Vacant_apartments_by_company <- Vacant_apartments %>% group_by(company_name) %>%  mutate(count = n())
 
 Vacant_apartments_by_company <- select(Vacant_apartments_by_company,company_name,count) 
@@ -335,7 +365,8 @@ ggplot(data = Vacant_apartments_count,
        mapping = aes( x= reorder(city_lms_name ,-count), fill = factor (num_of_rooms))) +
   geom_bar() + #fill='steelblue'
   scale_fill_manual(values = custom_colors) +
-  theme(axis.text.x=element_text(angle = -90, hjust = 0))
+  theme(axis.text.x=element_text(angle = -90, hjust = 0)) +
+  labs(x = "City", y = "Aartments", title = "Number of available apartments by city",fill = "Number of rooms",subtitle = "collected in May 24")
 ```
 ```{r echo=FALSE}
 
@@ -345,7 +376,8 @@ ggplot(data = Purcheuses,
        mapping = aes( x= city_lms_name, fill = factor(year))) +
   geom_bar() +
   scale_fill_manual(values = custom_colors) +
-  theme(axis.text.x=element_text(angle = -90, hjust = 0))
+  theme(axis.text.x=element_text(angle = -90, hjust = 0))+
+  labs(x = "City", y = "Apartments bought", title = "Apartments bought each year by City", fill = "Year", subtitle = "From 2017 to 2024")
 ```
 
 ```{r echo=FALSE}
@@ -399,7 +431,7 @@ b. Second Relation to examine : Outcome (Y): The number of houses bought in a ce
   + Correlation Analysis: To check the strength and direction of the relationship between voting patterns and housing purchases.
 
 
-#### 4. Necessary Results to Support the Hypothesis*
+#### 4. Necessary Results to Support the Hypothesis
 a. Comparison Analysis: Identify and quantify differences in public housing procurement policies by comparing cities with different political leanings.
 b. Inventory Analysis: Measure the percentage of vacant apartments and correlate this with housing purchases.
 
