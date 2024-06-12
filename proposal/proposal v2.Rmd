@@ -23,21 +23,16 @@ opts_chunk$set(echo=FALSE) # hide source code in the document
 
 ## 1. Introduction
 
-Public housing is government-owned housing units provided to low-income families, the elderly, and individuals with disabilities at affordable rent. The primary goal of public housing is to offer safe, decent, and sanitary living conditions for those who cannot afford market-rate housing.
-Nowadays, multiple public housing companies (most of them are funded by the Israeli government) own a bit more than 50,000 public housing apartments around Israel. Since the Ministry of Construction permits eligible individuals to obtain a housing unit only in the city where they are registered, there are currently approximately 4,300 eligible individuals on the waiting list for an apartment. Additionally, there are 25,000 more eligible individuals (including 6,000 Holocaust survivors) with an average waiting time of 3 to 4 years to receive an apartment, and even longer in Jerusalem and the central region.
-Those stats raises several questions about the public housing procurement policy lead by the government, our project will focus on this main question:  
-
+Public housing is government-owned housing units provided to low-income individuals and families who cannot afford market-rate housing.
+Currently, public housing companies which are mostly government-funded, own over 50,000 apartments across Israel. The Ministry of Construction only allows eligible individuals to obtain housing in their registered city, leading to around 4,300 people on the waiting list. Additionally, 25,000 more individuals, including 6,000 Holocaust survivors, face an average wait of 3 to 4 years, with longer waits in Jerusalem and central regions. This situation prompts questions about the government's public housing policy, which our project aims to address:
+  
 ####  **Is there a relation between general elections results per city, to the public housing procurement policy in the same city?**  
 
 Our project aims to find a relation (if exist) between the elected government policy regarding public housing, to the top voted parties in each city.
 Does the government buy more apartments in cities who voted for her? Does it buy less apartments in cities which didn’t vote for her?
 In which cities does the government sell more housing units?
 In which regions there are more vacant apartments? Did those regions vote for the elected government?
-Since 2015, Israel has had 5 national elections, 4 governments and 7 different ministers leading the Ministry of Construction.
-Research up to this point, focused on the shortage of apartments and the long waiting time, but we aim to find whether there is a hidden government policy behind the scenes, based on the elected government vote rate in each city.
-Our approach to answer the question is to combine multiple data sets regarding public housing (property purchases, vacant apartments, etc) and data sets about general elections per city (most elected parties per city). Then, we wish to find patterns which can indicate certain government’s policies to help us find an answer.
-
-
+Since 2015, Israel has had 5 national elections, 4 different governments, and 7 different Construction Ministers. While previous research focused on apartment shortages and long waiting times, we aim to investigate if there's a hidden government policy influenced by the vote rate in each city. We will combine public housing data (property purchases, vacant apartments, etc.) and election data (most elected parties per city) to find patterns indicating such policies.
 
 
 ## 2. Data
@@ -311,11 +306,7 @@ vacant_apartments_head <- head(Vacant_apartments,8)
 vacant_apartments_head
 ```
 
-
 ## 3. Preliminary results
-
-### Source code
-
 
 ```{r include=FALSE}
 Vacant_apartments_by_company <- Vacant_apartments %>% group_by(company_name) %>%  mutate(count = n())
@@ -406,9 +397,7 @@ Looking at the data visualization and some summary statistics we can see that th
 # add why there is no election summary.
 
 
-
 ## 4. Data analysis plan
-
 #### 1. Outcome (Response, Y) and Predictor (Explanatory, X) Variables
 a. First Relation to examine : Outcome (Y): The number of houses bought per city per year. Explanatory (X): Segmentation of voting percentages in that city.
 b. Second Relation to examine : Outcome (Y): The number of houses bought in a certain city in relation to the percentage of apartments available out of the total number of existing apartments in the city. Explanatory (X): Segmentation of voting percentages in that city.
@@ -418,12 +407,11 @@ b. Second Relation to examine : Outcome (Y): The number of houses bought in a ce
   * Spatial Comparison: Different cities in the same year with varying voting patterns.
 
 #### 3. Methods to Answer the Question
-* **Data Preprocessing:** Ensuring all data is in a uniform language,  Predicting or imputing null values to complete the dataset. Removing duplicates, correcting errors, and ensuring consistency. Creating new variables or modifying existing ones to better fit the analysis
+* **Data Preprocessing:** Ensuring all data is uniform, Predicting or imputing null values to complete the dataset. Removing duplicates, correcting errors, and ensuring consistency. Creating new variables or modifying existing ones to better fit the analysis
 * **Descriptive Analysis:** Describe the current public housing procurement policy, its components, and influencing factors. make variable overview: Detail the apartment inventory, political state of the city, and other relevant variables.
 * **Statistical Analysis:**
   + Logistic Regression: To model the probability of a certain number of houses being bought based on voting percentages. 
   + Linear Regression: To measure the linear relationship between the number of houses bought and the voting percentages.
-  + Non-linear Regression: For more complex relationships that cannot be adequately modeled by linear regression.
   + Comparative Analysis: Using t-tests or ANOVA to compare housing procurement policies across different cities and years based on their voting patterns.
   + Correlation Analysis: To check the strength and direction of the relationship between voting patterns and housing purchases.
 
@@ -433,15 +421,18 @@ a. Comparison Analysis: Identify and quantify differences in public housing proc
 b. Inventory Analysis: Measure the percentage of vacant apartments and correlate this with housing purchases.
 
 
-#### 5. Teamwork and Division of Work
-* Dori: Data Collection and Preprocessing - Gather and clean data, handle translations, manage missing values.
-* Daniel: Descriptive and Exploratory Analysis - Conduct descriptive analysis, visualize data, and provide initial insights.
-* Ofek: Statistical Analysis - Perform logistic, linear, and non-linear regression analyses, comparative and correlation analyses.
-* Shahaf: Reporting and Presentation - Consolidate findings, prepare the final report, and create visual presentations for clarity and communication of results.
+```{r eval=FALSE, include=FALSE}
+# #### 5. Teamwork and Division of Work
+# * Dori: Data Collection and Preprocessing - Gather and clean data, handle translations, manage missing values.
+# * Daniel: Descriptive and Exploratory Analysis - Conduct descriptive analysis, visualize data, and provide initial insights.
+# * Ofek: Statistical Analysis - Perform logistic, linear, and non-linear regression analyses, comparative and correlation analyses.
+# * Shahaf: Reporting and Presentation - Consolidate findings, prepare the final report, and create visual presentations for clarity and communication of results.
+# 
+# #### Differences from a Team of Three:  
+# A team of four allows for more specialisation and a more in-depth analysis, reducing individual workloads and increasing the quality and detail of the project. In contrast, a team of three may need to limit the scope of analysis and take on multiple roles, potentially leading to slower progress and less detailed insights. 
+```
 
-#### Differences from a Team of Three:  
-A team of four allows for more specialisation and a more in-depth analysis, reducing individual workloads and increasing the quality and detail of the project. In contrast, a team of three may need to limit the scope of analysis and take on multiple roles, potentially leading to slower progress and less detailed insights.  
-
+ 
 #### Collaboration and Communication:
 Tedious work will happen offline where each person will work at home. We will share a Git repository to keep the R code updated. Bi-weekly Zoom meetings will be held to go over the tasks needed to be done, ensuring everyone is on track and any issues can be addressed promptly. This regular communication is essential, especially considering Daniel's Miloim (reserve duty) commitments. During these meetings, we will review progress, plan next steps, and ensure alignment among all team members. By maintaining clear and consistent communication, we aim to work efficiently and effectively, despite being in different locations.
 
