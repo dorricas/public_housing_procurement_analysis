@@ -27,7 +27,7 @@ knitr::opts_chunk$set(fig.width=7, fig.height=3.5)
 
 ## 1. Introduction
 
-Public housing is government-owned housing units provided to low-income individuals and families who cannot afford market-rate housing. Currently, public housing companies which are mostly government-funded, own over 50,000 apartments across Israel. The Ministry of Construction only allows eligible individuals to obtain housing in their registered city, leading to around 4,300 people on the waiting list. Additionally, 25,000 more individuals, including 6,000 Holocaust survivors, face an average wait time of 3 to 4 years, with longer waits in Jerusalem and central regions. This situation prompts questions about the government's public housing policy, which our project aims to address:  
+Public housing is government-owned housing units provided to low-income individuals and families who cannot afford market-rate housing. Currently, public housing companies which are mostly government-funded, own over 50,000 apartments across Israel. The Ministry of Construction only allows eligible individuals to obtain housing in their registered city, leading to around 4,300 people on the waiting list. Additionally, 25,000 more individuals, including 6,000 Holocaust survivors, face an average wait of 3 to 4 years, with longer waits in Jerusalem and central regions. This situation prompts questions about the government's public housing policy, which our project aims to address:  
 **Is there a relation between general elections results per city, to the public housing procurement policy in the same city?**  
 Our project aims to find a relation (if exist) between the elected government policy regarding public housing, to the top voted parties in each city.  
 Does the government buy more apartments in cities who voted for her? Does it buy less apartments in cities which didn’t vote for her?
@@ -329,7 +329,7 @@ ggplot(data = Properties_room_sum_filtered, mapping = aes(x = reorder(city_lms_n
 ```
 
 
-Looking at the data visualization and some summary statistics we can see that there are some concentrations for the current public housing system, where a major portion of the apartments are 2 and 3 rooms which may not help those who need them. Furthermore there is 1 company owning most of the apartments and a lot of the apartments are located in southern Israel in cities such as Be'er Sheva or Dimona.  
+Looking at the data visualization and some summary statistics we can see that there are some concentrations for the current public housing system, where a major portion of the apartments are 2 and 3 rooms which may not help those who need theme. Furthermore there is 1 company owning most of the apartments and a lot of the apartments are located in southern Israel in cities such as Be'er Sheva or Dimona.  
 The elections results dataset is used mainly to determain the most voted party in a city, thus we didn't include any explanatory statistics about it.   
 
 ## 4. Data analysis plan
@@ -367,13 +367,13 @@ b. Inventory Analysis: Measure the percentage of vacant apartments and correlate
 * Ofek: Statistical Analysis - Perform logistic, linear, and non-linear regression analyses, comparative and correlation analyses.
 * Shahaf: Reporting and Presentation - Consolidate findings, prepare the final report, and create visual presentations for clarity and communication of results.  
 
-To assure all team members experience every part of the data science, each task completed will be reviewed and confirmed by all team members before granting "Finished" status and merging to the project's Master branch.  
-In addition, we present a general division of work, which will change dynamically through the project's progress according to the team's demands and needs.
+To assure all team members experience every part of the data science, each task completed will be reviewed and confirmed by all team members before granting "Finished" status and merging to the project's Master version.  
+In addition, we present a general division of work, which will change dynamicaly through the project's progress according to the team's demands and needs.
 
 
+ 
 #### Collaboration and Communication:
-
-Tedious work will happen offline where each person will work at home. We will share a **Git repository** to keep the R code updated. **Bi-weekly Zoom meetings** will be held to go over the tasks needed to be done, ensuring everyone is on track and any issues can be addressed promptly. This regular communication is essential, especially considering Daniel's Miloim (reserve duty) commitments. During these meetings, we will review progress, plan next steps, and ensure alignment among all team members. By maintaining clear and consistent communication, we aim to work efficiently and effectively, despite being in different locations.
+Tedious work will happen offline where each person will work at home. We will share a Git repository to keep the R code updated. Bi-weekly Zoom meetings will be held to go over the tasks needed to be done, ensuring everyone is on track and any issues can be addressed promptly. This regular communication is essential, especially considering Daniel's Miloim (reserve duty) commitments. During these meetings, we will review progress, plan next steps, and ensure alignment among all team members. By maintaining clear and consistent communication, we aim to work efficiently and effectively, despite being in different locations.
 
 
 
