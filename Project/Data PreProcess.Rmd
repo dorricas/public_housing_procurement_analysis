@@ -1,0 +1,227 @@
+---
+output: html_document
+date: "2024-06-21"
+---
+
+
+```{r load-packages, message=FALSE, include=FALSE}
+library(knitr)
+library(tidyverse)
+library(broom)
+library(htmltools)
+library(janitor)
+library(kableExtra)
+```
+
+```{r setup, include = FALSE}
+opts_chunk$set(echo=FALSE) # hide source code in the document
+knitr::opts_chunk$set(fig.width=7, fig.height=3.5)
+```
+
+## 1. Introduction
+
+Public housing is government-owned housing units provided to low-income individuals and families who cannot afford market-rate housing. Currently, public housing companies which are mostly government-funded, own over 50,000 apartments across Israel. The Ministry of Construction only allows eligible individuals to obtain housing in their registered city, leading to around 4,300 people on the waiting list. Additionally, 25,000 more individuals, including 6,000 Holocaust survivors, face an average wait time of 3 to 4 years, with longer waits in Jerusalem and central regions. This situation prompts questions about the government's public housing policy, which our project aims to address:  
+**Is there a relation between general elections results per city, to the public housing procurement policy in the same city?**  
+Our project aims to find a relation (if exist) between the elected government policy regarding public housing, to the top voted parties in each city.  
+Does the government buy more apartments in cities who voted for her? Does it buy less apartments in cities which didn’t vote for her?
+In which cities does the government sell more housing units?
+In which regions there are more vacant apartments? Did those regions vote for the elected government?
+Since 2015, Israel has had 5 national elections, 4 different governments, and 7 different Construction Ministers. While previous research focused on apartment shortages and long waiting times, we aim to investigate if there's a hidden government policy influenced by the vote rate in each city. We will combine public housing data (property purchases, vacant apartments, etc.) and election data (most elected parties per city) to find patterns indicating such policies.
+
+```{r include=FALSE}
+Election_results <- read.csv("../data/Translated/elect_results_t.csv")
+
+Properties_rooms <- read.csv("../data/Translated/properties_by_rooms_t.csv")
+
+Purcheuses <- read.csv("../data/Translated/property_purchases_t.csv")
+
+Vacant_apartments <- read.csv("../data/Translated/vacant_apartments_t.csv")
+
+Election_results
+
+Properties_rooms
+
+Purcheuses
+
+Vacant_apartments
+```
+
+```{r}
+# Renaming the Hebrew variables:
+Election_results <- Election_results %>% 
+  rename(
+    Avoda = "אמת",
+    Hofesh_Calcali = "אצ",
+    Habait_Hayhudi = "ב",
+    Yahadut_Hator = "ג",
+    Balad = "ד",
+    Hadash = "ום",
+    Shahar_Koach = "ז",
+    Kama = "זך",
+    Koach_Lehaspia = "זנ",
+    Tsomet = "זץ",
+    Tsionot_Datit = "ט",
+    Israel_Hofshit = "י",
+    Hacalalit = "יז",
+    Ihud_Benei_Brit = "ינ",
+    Tsav_Hashaa = "יץ",
+    Gush_Tanachi = "יק",
+    Machane_Mamalachti = "כן",
+    Ani_VeAta = "ך",
+    Israel_beitenu = "ל",
+    Halicud = "מחל",
+    Merets = "מרצ",
+    Kvod_Haadam = "נז",
+    Nativ = "ני",
+    Shema = "נף",
+    Atsmaiem = "נץ",
+    Yesh_kivun = "נק",
+    Anachnu = "נר",
+    Reshima_Aravit = "עם",
+    Yesh_atid = "פה",
+    Piratim = "ף",
+    Tseirim_boarim = "צ",
+    Manhigut_Hevratit = "ץ",
+    Kol_Hasviva = "ק",
+    Halev_hayehudi = "קי",
+    Seder_hadash = "קך",
+    Kol_koveaa = "קנ",
+    Beomets = "קץ",
+    Reshimat_34 = "רז",
+    Shas = "שס",
+    Ale_yarok = "ת"
+  )
+
+# mutate the names of the cities that are in other datasets.
+Election_results <- Election_results %>% 
+  mutate(
+    settlement.name = case_when(
+    settlement.name =="horizons" ~ "Ofakim",
+    settlement.name =="The view of the Galilee" ~ "Nof Hagalil",
+    settlement.name == "my peace" ~  "Shlomi" ,
+    settlement.name == "routes" ~ "Netivot",
+    TRUE ~ settlement.name  # Keeps other values unchanged
+    )
+  )
+```
+
+```{r}
+Properties_rooms_Citynames <- Properties_rooms[!duplicated(Properties_rooms$CityLMSName_Translated),]
+
+#mutate the names of the cities
+Properties_rooms <- Properties_rooms %>% 
+  mutate(
+    CityLMSName_Translated = case_when(
+    CityLMSName_Translated =="horizons" ~ "Ofakim",
+    CityLMSName_Translated =="The view of the Galilee" ~ "Nof Hagalil",
+    CityLMSName_Translated == "my peace" ~  "Shlomi" ,
+    CityLMSName_Translated == "routes" ~ "Netivot",
+    TRUE ~ CityLMSName_Translated  # Keeps other values unchanged
+    )
+  )
+
+# replace the columns with translated columns
+Properties_rooms$CityLMSName <- Properties_rooms$CityLMSName_Translated
+Properties_rooms <- Properties_rooms %>% clean_names()
+
+# remove duplicated translated columns 
+Properties_rooms <- Properties_rooms[, !grepl("translated$", names(Properties_rooms))]
+
+# check city names:
+# Purcheuses_names <- Purcheuses[!duplicated(Purcheuses$Lamas_name_translated),]
+# Purcheuses_names <- Purcheuses_names[c("Lamas_name","Lamas_name_translated")]
+# Purcheuses_names
+
+# preform the same for the other datasets
+Purcheuses <- Purcheuses %>% 
+  mutate(
+    Lamas_name_translated = case_when(
+    Lamas_name_translated =="horizons" ~ "Ofakim",
+    Lamas_name_translated =="The view of the Galilee" ~ "Nof Hagalil",
+    Lamas_name_translated == "my peace" ~  "Shlomi" ,
+    Lamas_name_translated == "routes" ~ "Netivot",
+    Lamas_name_translated == "streets" ~ "Rehovot",
+    Lamas_name_translated == "רחובות" ~ "Rehovot",
+    Lamas_name_translated == "fresh" ~ "Raanana",
+    TRUE ~ Lamas_name_translated  # Keeps other values unchanged
+    )
+  )
+
+Purcheuses$Lamas_name <- Purcheuses$Lamas_name_translated
+Purcheuses <- Purcheuses[, !grepl("translated$", names(Purcheuses))]
+Purcheuses <- Purcheuses %>% clean_names()
+
+# Vacant_apartments_names <- Vacant_apartments[!duplicated(Vacant_apartments$CityLmsName_Translated),]
+# Vacant_apartments_names <- Vacant_apartments_names[c("CityLmsName","CityLmsName_Translated")]
+# Vacant_apartments_names
+
+
+Vacant_apartments <- Vacant_apartments %>% 
+  mutate(
+    CityLmsName_Translated = case_when(
+    CityLmsName_Translated =="horizons" ~ "Ofakim",
+    CityLmsName_Translated =="The view of the Galilee" ~ "Nof Hagalil",
+    CityLmsName_Translated == "my peace" ~  "Shlomi" ,
+    CityLmsName_Translated == "routes" ~ "Netivot",
+    CityLmsName_Translated == "my peace" ~ "Shlomi",
+    TRUE ~ CityLmsName_Translated  # Keeps other values unchanged
+    )
+  )
+
+
+
+Vacant_apartments$CityLmsName <- Vacant_apartments$CityLmsName_Translated
+Vacant_apartments$CompanyName <- Vacant_apartments$CompanyName_Translated
+Vacant_apartments$StatusName <- Vacant_apartments$StatusName_Translated
+Vacant_apartments$PropertyTypeName <- Vacant_apartments$PropertyTypeName_Translated
+```
+
+```{r}
+
+Vacant_apartments <- Vacant_apartments[, !grepl("translated$", names(Vacant_apartments))]
+Vacant_apartments <- Vacant_apartments %>% clean_names()
+```
+
+```{r}
+#renaming elections table:
+Election_results <- Election_results %>% 
+  mutate(
+    settlement.name = case_when(
+    settlement.name =="horizons" ~ "Ofakim",
+    settlement.name =="The view of the Galilee" ~ "Nof Hagalil",
+    settlement.name == "my peace" ~  "Shlomi" ,
+    settlement.name == "routes" ~ "Netivot",
+    settlement.name == "my peace" ~ "Shlomi",
+    settlement.name == "streets" ~ "Rehovot",
+    settlement.name == "רחובות" ~ "Rehovot",
+    settlement.name == "fresh" ~ "Raanana",
+    TRUE ~ settlement.name  # Keeps other values unchanged
+    )
+  )
+
+
+```
+
+```{r include=FALSE, paged.print=TRUE}
+Vacant_apartments
+
+
+Purcheuses <- Purcheuses %>% 
+  rename(
+    city_lms_name = "lamas_name"
+  )
+Purcheuses
+
+Properties_rooms
+```
+ 
+
+
+## Appendix
+
+### Data README
+
+```{r include_data_readme, comment=''}
+cat(readLines('../data/README.md'), sep = '\n')
+```
+
