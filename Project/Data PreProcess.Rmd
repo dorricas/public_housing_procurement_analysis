@@ -18,17 +18,8 @@ opts_chunk$set(echo=FALSE) # hide source code in the document
 knitr::opts_chunk$set(fig.width=7, fig.height=3.5)
 ```
 
-## 1. Introduction
 
-Public housing is government-owned housing units provided to low-income individuals and families who cannot afford market-rate housing. Currently, public housing companies which are mostly government-funded, own over 50,000 apartments across Israel. The Ministry of Construction only allows eligible individuals to obtain housing in their registered city, leading to around 4,300 people on the waiting list. Additionally, 25,000 more individuals, including 6,000 Holocaust survivors, face an average wait time of 3 to 4 years, with longer waits in Jerusalem and central regions. This situation prompts questions about the government's public housing policy, which our project aims to address:  
-**Is there a relation between general elections results per city, to the public housing procurement policy in the same city?**  
-Our project aims to find a relation (if exist) between the elected government policy regarding public housing, to the top voted parties in each city.  
-Does the government buy more apartments in cities who voted for her? Does it buy less apartments in cities which didn’t vote for her?
-In which cities does the government sell more housing units?
-In which regions there are more vacant apartments? Did those regions vote for the elected government?
-Since 2015, Israel has had 5 national elections, 4 different governments, and 7 different Construction Ministers. While previous research focused on apartment shortages and long waiting times, we aim to investigate if there's a hidden government policy influenced by the vote rate in each city. We will combine public housing data (property purchases, vacant apartments, etc.) and election data (most elected parties per city) to find patterns indicating such policies.
-
-```{r include=FALSE}
+```{r echo=FALSE}
 Election_results <- read.csv("../data/Translated/elect_results_t.csv")
 
 Properties_rooms <- read.csv("../data/Translated/properties_by_rooms_t.csv")
@@ -115,6 +106,8 @@ Properties_rooms <- Properties_rooms %>%
     CityLMSName_Translated =="horizons" ~ "Ofakim",
     CityLMSName_Translated =="The view of the Galilee" ~ "Nof Hagalil",
     CityLMSName_Translated == "my peace" ~  "Shlomi" ,
+    CityLMSName_Translated == "streets" ~ "Rehovot",
+    CityLMSName_Translated == "רחובות" ~ "Rehovot",
     CityLMSName_Translated == "routes" ~ "Netivot",
     TRUE ~ CityLMSName_Translated  # Keeps other values unchanged
     )
@@ -205,7 +198,6 @@ Election_results <- Election_results %>%
 ```{r include=FALSE, paged.print=TRUE}
 Vacant_apartments
 
-
 Purcheuses <- Purcheuses %>% 
   rename(
     city_lms_name = "lamas_name"
@@ -214,8 +206,522 @@ Purcheuses
 
 Properties_rooms
 ```
- 
 
+```{r}
+# Group the dataframe by 'settlement.ID'
+grouped_by_settlement <- Election_results %>% group_by(settlement.ID)
+
+# Select columns from index 11 onwards (assuming 'settlement.ID' is column 11)
+cols_to_sum <- names(Election_results)[8:ncol(Election_results)]
+
+# Sum each column from 12 onwards within each settlement group
+settlement_sums <- grouped_by_settlement %>%
+  summarise(across(cols_to_sum, sum))  # Sum each column using 'across'
+
+citynames_and_id <- Election_results %>% distinct(settlement.ID,settlement.name)
+
+settlement_sums <- left_join(settlement_sums, citynames_and_id, by = "settlement.ID")
+
+# Print the summary table with settlement ID and summed column values
+print(settlement_sums)
+```
+
+```{r}
+chopped_elections_sum <- settlement_sums[, 6:ncol(settlement_sums)]
+
+chopped_elections_sum$max_value <- apply(chopped_elections_sum, 1, max)
+
+set.seed(123)
+# Function to get column name of max value in each row
+max_col_names <- apply(chopped_elections_sum, 1, function(row) {
+  colnames(chopped_elections_sum)[which.max(row)]
+})
+
+# Add the result as a new column to the original data frame
+chopped_elections_sum$max_col_name <- max_col_names
+
+find_max_value <- function(row) {
+  if (any(is.na(row))) {
+    NA  # Return NA if there are any NA values in the row
+  } else {
+    max(row)
+  }
+}
+
+
+
+chopped_elections_sum$max_value <- apply(chopped_elections_sum, 1, function(row) max(as.numeric(row), na.rm = TRUE))
+
+new_elections_sum <- chopped_elections_sum[,(ncol(chopped_elections_sum)-2):ncol(chopped_elections_sum)]
+
+new_elections_sum <- left_join(new_elections_sum, citynames_and_id, by = "settlement.name")
+new_elections_sum <- new_elections_sum[,c(4,1,3,2)]
+hepler_df <- settlement_sums[,c(1,2,3)]
+
+new_elections_sum <- left_join(new_elections_sum, hepler_df, by = "settlement.ID")
+new_elections_sum$VoterPrecentage <- new_elections_sum$Voters/new_elections_sum$BZB
+new_elections_sum$Party.Precentage <- new_elections_sum$max_value/new_elections_sum$Voters
+new_elections_sum
+Kneset25_summed <- new_elections_sum
+```
+```{r}
+Kneset21 <- read.csv("../data/Translated/kneset21.csv")
+
+Kneset22 <- read.csv("../data/Translated/kneset22.csv")
+
+Kneset23 <- read.csv("../data/Translated/Kneset23.csv")
+
+Kneset24 <- read.csv("../data/Translated/Kneset24.csv")
+```
+
+```{r}
+Kneset21
+Kneset22
+Kneset23
+Kneset24
+```
+
+```{r}
+# Renaming the Hebrew variables:
+Kneset21 <- Kneset21 %>% 
+  rename(
+    Avoda = "אמת",
+    Yahadut_Hatora = "ג",
+    Balad = "דעם",
+    Hadash = "ום",
+    Zehut = "ז",
+    Vatikim = "זי",
+    BritOlam = "זך",
+    Yahad = "זנ",
+    Zomet = "זץ",
+    Bait_Yehudi = "טב",
+    Yashar = "י",
+    Gush_Tanachi = "יז",
+    Bnei_Brit = "ין",
+    Acharayut = "יץ",
+    Kulanu_Yamin = "כ",
+    Tikva_Leshinui = "ךק",
+    Israel_Beitenu = "ל",
+    Halicud = "מחל",
+    Merets = "מרצ",
+    Yamin_Hadash = "נ",
+    Betach = "ן",
+    Zchutotinu = "נז",
+    Kvod_haadam = "ןך",
+    Reforma = "נך",
+    Manhigut_Hevratit = "ןנ",
+    Magen = "נץ",
+    Gesher = "נר",
+    Kahul_lavan = "פה",
+    Piratim = "ףז",
+    Pashut_Ahava = "ףי",
+    Hinuch = "ףך",
+    Shavim = "ףנ",
+    NaNach = "ףץ",
+    Calacla_Yeroka = "ץ",
+    Ofek_Hadash = "ץז",
+    Ani_VeAta = "ץי",
+    Zedek_Hevrati = "צק",
+    Zedek_Lakol = "ק",
+    Erez_Israel_Shelano = "קי",
+    Mehathala = "קן",
+    Kol_Israel = "קף",
+    Reshima_Aravit = "ר",
+    Shas = "שס",
+  )
+
+# mutate the names of the cities that are in other datasets.
+Kneset21 <- Kneset21 %>% 
+  mutate(
+    settlement.name = case_when(
+    settlement.name =="horizons" ~ "Ofakim",
+    settlement.name =="The view of the Galilee" ~ "Nof Hagalil",
+    settlement.name == "my peace" ~  "Shlomi" ,
+    settlement.name == "routes" ~ "Netivot",
+    TRUE ~ settlement.name  # Keeps other values unchanged
+    )
+  )
+```
+
+```{r}
+# Renaming the Hebrew variables:
+Kneset22 <- Kneset22 %>% 
+  rename(
+    Avoda = "אמת",
+    Yahadut_Hatora = "ג",
+    Hadash_Raam = "ודעם",
+    Ozma_Calcalit = "ז",
+    Democratura = "זכ",
+    Zegut = "זן",
+    Zomet = "זץ",
+    Yamina = "טב",
+    Manhigut_Hevratit = "י",
+    Adom_lavan = "יז",
+    Notsrit_liberalit = "ינ",
+    Kvod_haadam = "יף",
+    Gush_Tanachi = "יק",
+    Noam = "כ",
+    Ahdut_amamit = "כי",
+    Otsma_yehudit = "כף",
+    Israel_Beitenu = "ל",
+    Halicud = "מחל",
+    Merets = "מרצ",
+    Mitkademt = "נ",
+    Kavod_veshivion = "נך",
+    Kol_Israel = "נץ",
+    Kahul_Lavan = "פה",
+    Piratim = "ףז",
+    Zedek = "צ",
+    Zafon = "צן",
+    Daam = "ץ",
+    Zchutotinu = "ק",
+    Seder_Hadash = "קך",
+    Kama = "קץ",
+    Yamin_hiluni = "רק",
+    Shas = "שס",
+  )
+
+# mutate the names of the cities that are in other datasets.
+Kneset22 <- Kneset22 %>% 
+  mutate(
+    settlement.name = case_when(
+    settlement.name =="horizons" ~ "Ofakim",
+    settlement.name =="The view of the Galilee" ~ "Nof Hagalil",
+    settlement.name == "my peace" ~  "Shlomi" ,
+    settlement.name == "routes" ~ "Netivot",
+    TRUE ~ settlement.name  # Keeps other values unchanged
+    )
+  )
+```
+
+```{r}
+# Renaming the Hebrew variables:
+Kneset23 <- Kneset23 %>% 
+  rename(
+    Avoda = "אמת",
+    Yahadut_Hatora = "ג",
+    Hadash_Raam = "ודעם",
+    Ozma_Liberalit = "ז",
+    Peula_LeIsrael = "זך",
+    Zomet = "זץ",
+    Yamina = "טב",
+    Hazon = "י",
+    Adom_lavan = "יז",
+    Ihud_Habrit = "ינ",
+    Gush_Tanachi = "יק",
+    Manhigut_Hevratit = "יר",
+    Halev_Hayuhudi = "כ",
+    Ani_VeAta = "כן",
+    Israel_Beitenu = "ל",
+    Halicud = "מחל",
+    Kol_Hanashim = "נ",
+    Koach_Lehashpiaa = "נז",
+    Kama = "ני",
+    Mitkademet = "נק",
+    Ozma_Yehudit = "נץ",
+    Kahul_Lavan = "פה",
+    Piratim = "ףז",
+    Daam = "ץ",
+    Israelist = "ק",
+    Shema = "קי",
+    Seder_Hadash = "קך",
+    Mishpat_Zedek = "קץ",
+    Shas = "שס",
+  )
+
+# mutate the names of the cities that are in other datasets.
+Kneset23 <- Kneset23 %>% 
+  mutate(
+    settlement.name = case_when(
+    settlement.name =="horizons" ~ "Ofakim",
+    settlement.name =="The view of the Galilee" ~ "Nof Hagalil",
+    settlement.name == "my peace" ~  "Shlomi" ,
+    settlement.name == "routes" ~ "Netivot",
+    TRUE ~ settlement.name  # Keeps other values unchanged
+    )
+  )
+```
+
+```{r}
+# Renaming the Hebrew variables:
+Kneset24 <- Kneset24 %>% 
+  rename(
+    Avoda = "אמת",
+    Yamina = "ב",
+    Yahadut_Hatora = "ג",
+    Hadash_Raam = "ודעם",
+    Zomet = "זץ",
+    Zionot_datit = "ט",
+    Gimlaim = "י",
+    Hacalcalit_Hadash = "יז",
+    Brit_Shotfut = "ינ",
+    Gush_Tanachi = "יק",
+    Manhigut_Hevratit = "יר",
+    Kvod_haadam = "יף",
+    Halev_Hayehudi = "כ",
+    Ani_VeAta = "כך",
+    Kahul_Lavan = "כן",
+    Israel_Beitenu = "ל",
+    Halicud = "מחל",
+    Merets = "מרצ",
+    Kama = "נ",
+    Olam_Hadash = "ני",
+    Anachnu = "נר",
+    Reshima_aravit = "עם",
+    Yesh_atid = "פה",
+    Piratim = "ףז",
+    Azmenu = "צי",
+    Hets = "צף",
+    Maan = "צכ",
+    Daam = "ץ",
+    Efshari = "ק",
+    Shema = "קי",
+    Seder_Hadash = "קך",
+    Mishpat_Zedek = "קץ",
+    Rapee = "ר",
+    Hatikva_Leshinui = "ר",
+    Democratit = "רק",
+    Am_Shalem = "רף",
+    Shas = "שס",
+    Tikva_Hadasha = "ת",
+  )
+
+# mutate the names of the cities that are in other datasets.
+Kneset24 <- Kneset24 %>% 
+  mutate(
+    settlement.name = case_when(
+    settlement.name =="horizons" ~ "Ofakim",
+    settlement.name =="The view of the Galilee" ~ "Nof Hagalil",
+    settlement.name == "my peace" ~  "Shlomi" ,
+    settlement.name == "routes" ~ "Netivot",
+    TRUE ~ settlement.name  # Keeps other values unchanged
+    )
+  )
+```
+
+
+```{r}
+# Group the dataframe by 'settlement.ID'
+Kneset21_grouped <- Kneset21 %>% group_by(settlement.ID)
+
+# Select columns from index 11 onwards (assuming 'settlement.ID' is column 11)
+cols_to_sum <- names(Kneset21)[4:ncol(Kneset21)]
+
+# Sum each column from 12 onwards within each settlement group
+settlement_sums <- Kneset21_grouped %>%
+  summarise(across(cols_to_sum, sum))  # Sum each column using 'across'
+
+citynames_and_id <- Kneset21 %>% distinct(settlement.ID,settlement.name)
+
+settlement_sums <- left_join(settlement_sums, citynames_and_id, by = "settlement.ID")
+
+chopped_elections_sum <- settlement_sums[, 6:ncol(settlement_sums)]
+
+chopped_elections_sum$max_value <- apply(chopped_elections_sum, 1, max)
+
+set.seed(123)
+# Function to get column name of max value in each row
+max_col_names <- apply(chopped_elections_sum, 1, function(row) {
+  colnames(chopped_elections_sum)[which.max(row)]
+})
+
+# Add the result as a new column to the original data frame
+chopped_elections_sum$max_col_name <- max_col_names
+
+find_max_value <- function(row) {
+  if (any(is.na(row))) {
+    NA  # Return NA if there are any NA values in the row
+  } else {
+    max(row)
+  }
+}
+
+
+
+chopped_elections_sum$max_value <- apply(chopped_elections_sum, 1, function(row) max(as.numeric(row), na.rm = TRUE))
+
+new_elections_sum <- chopped_elections_sum[,(ncol(chopped_elections_sum)-2):ncol(chopped_elections_sum)]
+
+new_elections_sum <- left_join(new_elections_sum, citynames_and_id, by = "settlement.name")
+new_elections_sum <- new_elections_sum[,c(4,1,3,2)]
+hepler_df <- settlement_sums[,c(1,2,3)]
+
+new_elections_sum <- left_join(new_elections_sum, hepler_df, by = "settlement.ID")
+new_elections_sum$VoterPrecentage <- new_elections_sum$Voters/new_elections_sum$BZB
+new_elections_sum$Party.Precentage <- new_elections_sum$max_value/new_elections_sum$Voters
+Kneset21_summed <- new_elections_sum
+
+Kneset21_summed
+```
+
+```{r}
+# Group the dataframe by 'settlement.ID'
+Kneset22_grouped <- Kneset22 %>% group_by(settlement.ID)
+
+# Select columns from index 11 onwards (assuming 'settlement.ID' is column 11)
+cols_to_sum <- names(Kneset22)[4:ncol(Kneset22)]
+
+# Sum each column from 12 onwards within each settlement group
+settlement_sums <- Kneset22_grouped %>%
+  summarise(across(cols_to_sum, sum))  # Sum each column using 'across'
+
+citynames_and_id <- Kneset22 %>% distinct(settlement.ID,settlement.name)
+
+settlement_sums <- left_join(settlement_sums, citynames_and_id, by = "settlement.ID")
+
+chopped_elections_sum <- settlement_sums[, 6:ncol(settlement_sums)]
+
+chopped_elections_sum$max_value <- apply(chopped_elections_sum, 1, max)
+
+set.seed(123)
+# Function to get column name of max value in each row
+max_col_names <- apply(chopped_elections_sum, 1, function(row) {
+  colnames(chopped_elections_sum)[which.max(row)]
+})
+
+# Add the result as a new column to the original data frame
+chopped_elections_sum$max_col_name <- max_col_names
+
+find_max_value <- function(row) {
+  if (any(is.na(row))) {
+    NA  # Return NA if there are any NA values in the row
+  } else {
+    max(row)
+  }
+}
+
+
+
+chopped_elections_sum$max_value <- apply(chopped_elections_sum, 1, function(row) max(as.numeric(row), na.rm = TRUE))
+
+new_elections_sum <- chopped_elections_sum[,(ncol(chopped_elections_sum)-2):ncol(chopped_elections_sum)]
+
+new_elections_sum <- left_join(new_elections_sum, citynames_and_id, by = "settlement.name")
+new_elections_sum <- new_elections_sum[,c(4,1,3,2)]
+hepler_df <- settlement_sums[,c(1,2,3)]
+
+new_elections_sum <- left_join(new_elections_sum, hepler_df, by = "settlement.ID")
+new_elections_sum$VoterPrecentage <- new_elections_sum$Voters/new_elections_sum$BZB
+new_elections_sum$Party.Precentage <- new_elections_sum$max_value/new_elections_sum$Voters
+Kneset22_summed <- new_elections_sum
+
+Kneset22_summed
+```
+
+```{r}
+# Group the dataframe by 'settlement.ID'
+Kneset23_grouped <- Kneset23 %>% group_by(settlement.ID)
+
+# Select columns from index 11 onwards (assuming 'settlement.ID' is column 11)
+cols_to_sum <- names(Kneset23)[8:ncol(Kneset23)]
+
+# Sum each column from 12 onwards within each settlement group
+settlement_sums <- Kneset23_grouped %>%
+  summarise(across(cols_to_sum, sum))  # Sum each column using 'across'
+
+citynames_and_id <- Kneset23 %>% distinct(settlement.ID,settlement.name)
+
+settlement_sums <- left_join(settlement_sums, citynames_and_id, by = "settlement.ID")
+
+chopped_elections_sum <- settlement_sums[, 6:ncol(settlement_sums)]
+
+chopped_elections_sum$max_value <- apply(chopped_elections_sum, 1, max)
+
+set.seed(123)
+# Function to get column name of max value in each row
+max_col_names <- apply(chopped_elections_sum, 1, function(row) {
+  colnames(chopped_elections_sum)[which.max(row)]
+})
+
+# Add the result as a new column to the original data frame
+chopped_elections_sum$max_col_name <- max_col_names
+
+find_max_value <- function(row) {
+  if (any(is.na(row))) {
+    NA  # Return NA if there are any NA values in the row
+  } else {
+    max(row)
+  }
+}
+
+
+
+chopped_elections_sum$max_value <- apply(chopped_elections_sum, 1, function(row) max(as.numeric(row), na.rm = TRUE))
+
+new_elections_sum <- chopped_elections_sum[,(ncol(chopped_elections_sum)-2):ncol(chopped_elections_sum)]
+
+new_elections_sum <- left_join(new_elections_sum, citynames_and_id, by = "settlement.name")
+new_elections_sum <- new_elections_sum[,c(4,1,3,2)]
+hepler_df <- settlement_sums[,c(1,2,3)]
+
+new_elections_sum <- left_join(new_elections_sum, hepler_df, by = "settlement.ID")
+new_elections_sum$VoterPrecentage <- new_elections_sum$Voters/new_elections_sum$BZB
+new_elections_sum$Party.Precentage <- new_elections_sum$max_value/new_elections_sum$Voters
+Kneset23_summed <- new_elections_sum
+
+Kneset23_summed
+```
+
+```{r}
+# Group the dataframe by 'settlement.ID'
+Kneset24_grouped <- Kneset24 %>% group_by(settlement.ID)
+
+# Select columns from index 11 onwards (assuming 'settlement.ID' is column 11)
+cols_to_sum <- names(Kneset24)[8:ncol(Kneset24)]
+
+# Sum each column from 12 onwards within each settlement group
+settlement_sums <- Kneset24_grouped %>%
+  summarise(across(cols_to_sum, sum))  # Sum each column using 'across'
+
+citynames_and_id <- Kneset24 %>% distinct(settlement.ID,settlement.name)
+
+settlement_sums <- left_join(settlement_sums, citynames_and_id, by = "settlement.ID")
+
+chopped_elections_sum <- settlement_sums[, 6:ncol(settlement_sums)]
+
+chopped_elections_sum$max_value <- apply(chopped_elections_sum, 1, max)
+
+set.seed(123)
+# Function to get column name of max value in each row
+max_col_names <- apply(chopped_elections_sum, 1, function(row) {
+  colnames(chopped_elections_sum)[which.max(row)]
+})
+
+# Add the result as a new column to the original data frame
+chopped_elections_sum$max_col_name <- max_col_names
+
+find_max_value <- function(row) {
+  if (any(is.na(row))) {
+    NA  # Return NA if there are any NA values in the row
+  } else {
+    max(row)
+  }
+}
+
+
+
+chopped_elections_sum$max_value <- apply(chopped_elections_sum, 1, function(row) max(as.numeric(row), na.rm = TRUE))
+
+new_elections_sum <- chopped_elections_sum[,(ncol(chopped_elections_sum)-2):ncol(chopped_elections_sum)]
+
+new_elections_sum <- left_join(new_elections_sum, citynames_and_id, by = "settlement.name")
+new_elections_sum <- new_elections_sum[,c(4,1,3,2)]
+hepler_df <- settlement_sums[,c(1,2,3)]
+
+new_elections_sum <- left_join(new_elections_sum, hepler_df, by = "settlement.ID")
+new_elections_sum$VoterPrecentage <- new_elections_sum$Voters/new_elections_sum$BZB
+new_elections_sum$Party.Precentage <- new_elections_sum$max_value/new_elections_sum$Voters
+Kneset24_summed <- new_elections_sum
+
+Kneset24_summed
+```
+```{r}
+write.csv(Kneset21_summed, "../data/Translated/Kneset21_summed.csv")
+write.csv(Kneset22_summed, "../data/Translated/Kneset22_summed.csv")
+write.csv(Kneset23_summed, "../data/Translated/Kneset23_summed.csv")
+write.csv(Kneset24_summed, "../data/Translated/Kneset24_summed.csv")
+write.csv(Kneset25_summed, "../data/Translated/Kneset25_summed.csv")
+```
 
 ## Appendix
 
