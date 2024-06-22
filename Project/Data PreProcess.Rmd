@@ -1,0 +1,1243 @@
+---
+output: html_document
+date: "2024-06-21"
+---
+
+
+```{r load-packages, message=FALSE, include=FALSE}
+library(knitr)
+library(tidyverse)
+library(broom)
+library(htmltools)
+library(janitor)
+library(kableExtra)
+```
+
+```{r setup, include = FALSE}
+opts_chunk$set(echo=FALSE) # hide source code in the document
+knitr::opts_chunk$set(fig.width=7, fig.height=3.5)
+```
+
+
+```{r echo=FALSE}
+Election_results <- read.csv("../data/Translated/elect_results_t.csv")
+
+Properties_rooms <- read.csv("../data/Translated/properties_by_rooms_t.csv")
+
+Purcheuses <- read.csv("../data/Translated/property_purchases_t.csv")
+
+Vacant_apartments <- read.csv("../data/Translated/vacant_apartments_t.csv")
+
+Election_results
+
+Properties_rooms
+
+Purcheuses
+
+Vacant_apartments
+```
+
+```{r}
+# Renaming the Hebrew variables:
+Election_results <- Election_results %>% 
+  rename(
+    Avoda = "אמת",
+    Hofesh_Calcali = "אצ",
+    Habait_Hayhudi = "ב",
+    Yahadut_Hator = "ג",
+    Balad = "ד",
+    Hadash = "ום",
+    Shahar_Koach = "ז",
+    Kama = "זך",
+    Koach_Lehaspia = "זנ",
+    Tsomet = "זץ",
+    Tsionot_Datit = "ט",
+    Israel_Hofshit = "י",
+    Hacalalit = "יז",
+    Ihud_Benei_Brit = "ינ",
+    Tsav_Hashaa = "יץ",
+    Gush_Tanachi = "יק",
+    Machane_Mamalachti = "כן",
+    Ani_VeAta = "ך",
+    Israel_beitenu = "ל",
+    Halicud = "מחל",
+    Merets = "מרצ",
+    Kvod_Haadam = "נז",
+    Nativ = "ני",
+    Shema = "נף",
+    Atsmaiem = "נץ",
+    Yesh_kivun = "נק",
+    Anachnu = "נר",
+    Reshima_Aravit = "עם",
+    Yesh_atid = "פה",
+    Piratim = "ף",
+    Tseirim_boarim = "צ",
+    Manhigut_Hevratit = "ץ",
+    Kol_Hasviva = "ק",
+    Halev_hayehudi = "קי",
+    Seder_hadash = "קך",
+    Kol_koveaa = "קנ",
+    Beomets = "קץ",
+    Reshimat_34 = "רז",
+    Shas = "שס",
+    Ale_yarok = "ת"
+  )
+
+# mutate the names of the cities that are in other datasets.
+Election_results <- Election_results %>% 
+  mutate(
+    settlement.name = case_when(
+    settlement.name =="horizons" ~ "Ofakim",
+    settlement.name =="The view of the Galilee" ~ "Nof Hagalil",
+    settlement.name == "my peace" ~  "Shlomi" ,
+    settlement.name == "routes" ~ "Netivot",
+    TRUE ~ settlement.name  # Keeps other values unchanged
+    )
+  )
+```
+
+```{r}
+Properties_rooms_Citynames <- Properties_rooms[!duplicated(Properties_rooms$CityLMSName_Translated),]
+#mutate the names of the cities
+Properties_rooms <- Properties_rooms %>% 
+  mutate(
+    CityLMSName_Translated = case_when(
+    CityLMSName_Translated =="horizons" ~ "Ofakim",
+    CityLMSName_Translated =="The view of the Galilee" ~ "Nof Hagalil",
+    CityLMSName_Translated == "my peace" ~  "Shlomi" ,
+    CityLMSName_Translated == "routes" ~ "Netivot",
+    CityLMSName_Translated == "streets" ~ "Rehovot",
+    CityLMSName_Translated == "Area" ~ "Azur",
+    CityLMSName_Translated == "רחובות" ~ "Rehovot",
+    CityLMSName_Translated == "fresh" ~ "Raanana",
+    CityLMSName_Translated == "sons of Aish" ~ "Bnei Aish",
+    CityLMSName_Translated == "a horse" ~ "Susya",
+    CityLMSName_Translated == "scythe" ~ "Hermesh",
+    CityLMSName_Translated == "pestle" ~ "Eli",
+    CityLMSName_Translated == "ridges" ~ "Rekhasim",
+    CityLMSName_Translated == "crimson" ~ "Argaman",
+    CityLMSName_Translated == "earing" ~ "Harish",
+    CityLMSName_Translated == "anemone" ~ "Kalanit",
+    CityLMSName_Translated == "I will tell" ~ "Metzad",
+    CityLMSName_Translated == "crop" ~ "Yevul",
+    CityLMSName_Translated == "stake" ~ "Yated",
+    CityLMSName_Translated == "Come on, Zoran" ~ "Kadima-Zoran",
+    CityLMSName_Translated == "a fence" ~ "Gedera",
+    CityLMSName_Translated == "measles" ~ "Hatzeva",
+    CityLMSName_Translated == "Furia-Neva is working" ~ "Poria–Neve Oved",
+    CityLMSName_Translated == "Ptolemy Yosef" ~ "Talmei Yosef",
+    CityLMSName_Translated == "Solid stones" ~ "Avnei Eitan",
+    CityLMSName_Translated == "horn" ~ "Tzofar",
+    CityLMSName_Translated == "Horns of Samaria" ~ "Karnei Shomron",
+    CityLMSName_Translated == "sapphire" ~ "Sapir",
+    CityLMSName_Translated == "dawn" ~ "Tzohar",
+    CityLMSName_Translated == "truffle" ~ "Kmehin",
+    CityLMSName_Translated == "Chinese radish" ~ "Kadesh Barnea",
+    CityLMSName_Translated == "towers" ~ "Migdalim",
+    CityLMSName_Translated == "harvesting" ~ "Katzir",
+    CityLMSName_Translated == "emerald" ~ "Bareket",
+    CityLMSName_Translated == "A souvenir of her house" ~ "Mazkeret Batya",
+    CityLMSName_Translated == "darling" ~ "Yakir",
+    CityLMSName_Translated == "tower" ~ "Migdal",
+    CityLMSName_Translated == "Ancients" ~ "Kedumim",
+    CityLMSName_Translated == "face friend" ~ "Ma'ale Hever",
+    CityLMSName_Translated == "on" ~ "Sha'al",
+    CityLMSName_Translated == "Gold leaves" ~ "Alei Zahav",
+    CityLMSName_Translated == "better" ~ "Yitav",
+    CityLMSName_Translated == "Bethel" ~ "Beit El",
+    CityLMSName_Translated == "Sheila" ~ "Shilo",
+    CityLMSName_Translated == "Gems" ~ "Avnei Hefetz",
+    CityLMSName_Translated == "Tarshiha" ~ "Ma'alot-Tarshiha",
+    CityLMSName_Translated == "diligent" ~ "Harutzim",
+    CityLMSName_Translated == "Roy" ~ "Ro'i",
+    CityLMSName_Translated == "flint" ~ "Halamish",
+    CityLMSName_Translated == "roots" ~ "Shorashim",
+    CityLMSName_Translated == "Absalom" ~ "Avshalom",
+    CityLMSName_Translated == "Dotan's introduction" ~ "Mevo Dotan",
+    CityLMSName_Translated == "The Galilee" ~ "Gornot HaGalil",
+    CityLMSName_Translated == "Shafram" ~ "Shfar'am",
+    CityLMSName_Translated == "torches" ~ "Lapidot",
+    CityLMSName_Translated == "Apple village" ~ "Kfar Tapuach",
+    CityLMSName_Translated == "its openings" ~ "Petahya",
+    CityLMSName_Translated == "grape" ~ "Einav",
+    CityLMSName_Translated == "Dubb" ~ "Dovev",
+    CityLMSName_Translated == "antimony" ~ "Kahal",
+    CityLMSName_Translated == "Yavnal" ~ "Yavne'el",
+    CityLMSName_Translated == "hardware" ~ "Hamra",
+    CityLMSName_Translated == "garden fruit" ~ "Pri Gan",
+    CityLMSName_Translated == "Almond" ~ "Shaked",
+    CityLMSName_Translated == "Head turned" ~ "Rosh Pinna",
+    CityLMSName_Translated == "Frankincense" ~ "Ma'ale Levona",
+    CityLMSName_Translated == "Abraham's demons" ~ "Sdei Avraham",
+    TRUE ~ CityLMSName_Translated  # Keeps other values unchanged
+    )
+  )
+# replace the columns with translated columns
+Properties_rooms$CityLMSName <- Properties_rooms$CityLMSName_Translated
+Properties_rooms <- Properties_rooms %>% clean_names()
+# remove duplicated translated columns 
+Properties_rooms <- Properties_rooms[, !grepl("translated$", names(Properties_rooms))]
+# check city names:
+# Purcheuses_names <- Purcheuses[!duplicated(Purcheuses$Lamas_name_translated),]
+# Purcheuses_names <- Purcheuses_names[c("Lamas_name","Lamas_name_translated")]
+# Purcheuses_names
+# preform the same for the other datasets
+Purcheuses <- Purcheuses %>% 
+  mutate(
+    Lamas_name_translated = case_when(
+    Lamas_name_translated == "horizons" ~ "Ofakim",
+    Lamas_name_translated == "The view of the Galilee" ~ "Nof Hagalil",
+    Lamas_name_translated == "my peace" ~  "Shlomi" ,
+    Lamas_name_translated == "routes" ~ "Netivot",
+    Lamas_name_translated == "streets" ~ "Rehovot",
+    Lamas_name_translated == "Area" ~ "Azur",
+    Lamas_name_translated == "רחובות" ~ "Rehovot",
+    Lamas_name_translated == "fresh" ~ "Raanana",
+    Lamas_name_translated == "sons of Aish" ~ "Bnei Aish",
+    Lamas_name_translated == "a horse" ~ "Susya",
+    Lamas_name_translated == "scythe" ~ "Hermesh",
+    Lamas_name_translated == "pestle" ~ "Eli",
+    Lamas_name_translated == "ridges" ~ "Rekhasim",
+    Lamas_name_translated == "crimson" ~ "Argaman",
+    Lamas_name_translated == "earing" ~ "Harish",
+    Lamas_name_translated == "anemone" ~ "Kalanit",
+    Lamas_name_translated == "I will tell" ~ "Metzad",
+    Lamas_name_translated == "crop" ~ "Yevul",
+    Lamas_name_translated == "stake" ~ "Yated",
+    Lamas_name_translated == "Come on, Zoran" ~ "Kadima-Zoran",
+    Lamas_name_translated == "a fence" ~ "Gedera",
+    Lamas_name_translated == "measles" ~ "Hatzeva",
+    Lamas_name_translated == "Furia-Neva is working" ~ "Poria–Neve Oved",
+    Lamas_name_translated == "Ptolemy Yosef" ~ "Talmei Yosef",
+    Lamas_name_translated == "Solid stones" ~ "Avnei Eitan",
+    Lamas_name_translated == "horn" ~ "Tzofar",
+    Lamas_name_translated == "Horns of Samaria" ~ "Karnei Shomron",
+    Lamas_name_translated == "sapphire" ~ "Sapir",
+    Lamas_name_translated == "dawn" ~ "Tzohar",
+    Lamas_name_translated == "truffle" ~ "Kmehin",
+    Lamas_name_translated == "Chinese radish" ~ "Kadesh Barnea",
+    Lamas_name_translated == "towers" ~ "Migdalim",
+    Lamas_name_translated == "harvesting" ~ "Katzir",
+    Lamas_name_translated == "emerald" ~ "Bareket",
+    Lamas_name_translated == "A souvenir of her house" ~ "Mazkeret Batya",
+    Lamas_name_translated == "darling" ~ "Yakir",
+    Lamas_name_translated == "tower" ~ "Migdal",
+    Lamas_name_translated == "Ancients" ~ "Kedumim",
+    Lamas_name_translated == "face friend" ~ "Ma'ale Hever",
+    Lamas_name_translated == "on" ~ "Sha'al",
+    Lamas_name_translated == "Gold leaves" ~ "Alei Zahav",
+    Lamas_name_translated == "better" ~ "Yitav",
+    Lamas_name_translated == "Bethel" ~ "Beit El",
+    Lamas_name_translated == "Sheila" ~ "Shilo",
+    Lamas_name_translated == "Gems" ~ "Avnei Hefetz",
+    Lamas_name_translated == "Tarshiha" ~ "Ma'alot-Tarshiha",
+    Lamas_name_translated == "diligent" ~ "Harutzim",
+    Lamas_name_translated == "Roy" ~ "Ro'i",
+    Lamas_name_translated == "flint" ~ "Halamish",
+    Lamas_name_translated == "roots" ~ "Shorashim",
+    Lamas_name_translated == "Absalom" ~ "Avshalom",
+    Lamas_name_translated == "Dotan's introduction" ~ "Mevo Dotan",
+    Lamas_name_translated == "The Galilee" ~ "Gornot HaGalil",
+    Lamas_name_translated == "Shafram" ~ "Shfar'am",
+    Lamas_name_translated == "torches" ~ "Lapidot",
+    Lamas_name_translated == "Apple village" ~ "Kfar Tapuach",
+    Lamas_name_translated == "its openings" ~ "Petahya",
+    Lamas_name_translated == "grape" ~ "Einav",
+    Lamas_name_translated == "Dubb" ~ "Dovev",
+    Lamas_name_translated == "antimony" ~ "Kahal",
+    Lamas_name_translated == "Yavnal" ~ "Yavne'el",
+    Lamas_name_translated == "hardware" ~ "Hamra",
+    Lamas_name_translated == "garden fruit" ~ "Pri Gan",
+    Lamas_name_translated == "Almond" ~ "Shaked",
+    Lamas_name_translated == "Head turned" ~ "Rosh Pinna",
+    Lamas_name_translated == "Frankincense" ~ "Ma'ale Levona",
+    Lamas_name_translated == "Abraham's demons" ~ "Sdei Avraham",
+    TRUE ~ Lamas_name_translated  # Keeps other values unchanged
+    )
+  )
+Purcheuses$Lamas_name <- Purcheuses$Lamas_name_translated
+Purcheuses <- Purcheuses[, !grepl("translated$", names(Purcheuses))]
+Purcheuses <- Purcheuses %>% clean_names()
+# Vacant_apartments_names <- Vacant_apartments[!duplicated(Vacant_apartments$CityLmsName_Translated),]
+# Vacant_apartments_names <- Vacant_apartments_names[c("CityLmsName","CityLmsName_Translated")]
+# Vacant_apartments_names
+Vacant_apartments <- Vacant_apartments %>% 
+  mutate(
+    CityLmsName_Translated = case_when(
+    CityLmsName_Translated == "horizons" ~ "Ofakim",
+    CityLmsName_Translated == "The view of the Galilee" ~ "Nof Hagalil",
+    CityLmsName_Translated == "my peace" ~  "Shlomi" ,
+    CityLmsName_Translated == "routes" ~ "Netivot",
+    CityLmsName_Translated == "streets" ~ "Rehovot",
+    CityLmsName_Translated == "Area" ~ "Azur",
+    CityLmsName_Translated == "רחובות" ~ "Rehovot",
+    CityLmsName_Translated == "fresh" ~ "Raanana",
+    CityLmsName_Translated == "sons of Aish" ~ "Bnei Aish",
+    CityLmsName_Translated == "a horse" ~ "Susya",
+    CityLmsName_Translated == "scythe" ~ "Hermesh",
+    CityLmsName_Translated == "pestle" ~ "Eli",
+    CityLmsName_Translated == "ridges" ~ "Rekhasim",
+    CityLmsName_Translated == "crimson" ~ "Argaman",
+    CityLmsName_Translated == "earing" ~ "Harish",
+    CityLmsName_Translated == "anemone" ~ "Kalanit",
+    CityLmsName_Translated == "I will tell" ~ "Metzad",
+    CityLmsName_Translated == "crop" ~ "Yevul",
+    CityLmsName_Translated == "stake" ~ "Yated",
+    CityLmsName_Translated == "Come on, Zoran" ~ "Kadima-Zoran",
+    CityLmsName_Translated == "a fence" ~ "Gedera",
+    CityLmsName_Translated == "measles" ~ "Hatzeva",
+    CityLmsName_Translated == "Furia-Neva is working" ~ "Poria–Neve Oved",
+    CityLmsName_Translated == "Ptolemy Yosef" ~ "Talmei Yosef",
+    CityLmsName_Translated == "Solid stones" ~ "Avnei Eitan",
+    CityLmsName_Translated == "horn" ~ "Tzofar",
+    CityLmsName_Translated == "Horns of Samaria" ~ "Karnei Shomron",
+    CityLmsName_Translated == "sapphire" ~ "Sapir",
+    CityLmsName_Translated == "dawn" ~ "Tzohar",
+    CityLmsName_Translated == "truffle" ~ "Kmehin",
+    CityLmsName_Translated == "Chinese radish" ~ "Kadesh Barnea",
+    CityLmsName_Translated == "towers" ~ "Migdalim",
+    CityLmsName_Translated == "harvesting" ~ "Katzir",
+    CityLmsName_Translated == "emerald" ~ "Bareket",
+    CityLmsName_Translated == "A souvenir of her house" ~ "Mazkeret Batya",
+    CityLmsName_Translated == "darling" ~ "Yakir",
+    CityLmsName_Translated == "tower" ~ "Migdal",
+    CityLmsName_Translated == "Ancients" ~ "Kedumim",
+    CityLmsName_Translated == "face friend" ~ "Ma'ale Hever",
+    CityLmsName_Translated == "on" ~ "Sha'al",
+    CityLmsName_Translated == "Gold leaves" ~ "Alei Zahav",
+    CityLmsName_Translated == "better" ~ "Yitav",
+    CityLmsName_Translated == "Bethel" ~ "Beit El",
+    CityLmsName_Translated == "Sheila" ~ "Shilo",
+    CityLmsName_Translated == "Gems" ~ "Avnei Hefetz",
+    CityLmsName_Translated == "Tarshiha" ~ "Ma'alot-Tarshiha",
+    CityLmsName_Translated == "diligent" ~ "Harutzim",
+    CityLmsName_Translated == "Roy" ~ "Ro'i",
+    CityLmsName_Translated == "flint" ~ "Halamish",
+    CityLmsName_Translated == "roots" ~ "Shorashim",
+    CityLmsName_Translated == "Absalom" ~ "Avshalom",
+    CityLmsName_Translated == "Dotan's introduction" ~ "Mevo Dotan",
+    CityLmsName_Translated == "The Galilee" ~ "Gornot HaGalil",
+    CityLmsName_Translated == "Shafram" ~ "Shfar'am",
+    CityLmsName_Translated == "torches" ~ "Lapidot",
+    CityLmsName_Translated == "Apple village" ~ "Kfar Tapuach",
+    CityLmsName_Translated == "its openings" ~ "Petahya",
+    CityLmsName_Translated == "grape" ~ "Einav",
+    CityLmsName_Translated == "Dubb" ~ "Dovev",
+    CityLmsName_Translated == "antimony" ~ "Kahal",
+    CityLmsName_Translated == "Yavnal" ~ "Yavne'el",
+    CityLmsName_Translated == "hardware" ~ "Hamra",
+    CityLmsName_Translated == "garden fruit" ~ "Pri Gan",
+    CityLmsName_Translated == "Almond" ~ "Shaked",
+    CityLmsName_Translated == "Head turned" ~ "Rosh Pinna",
+    CityLmsName_Translated == "Frankincense" ~ "Ma'ale Levona",
+    CityLmsName_Translated == "Abraham's demons" ~ "Sdei Avraham",
+    TRUE ~ CityLmsName_Translated  # Keeps other values unchanged
+    )
+  )
+Vacant_apartments$CityLmsName <- Vacant_apartments$CityLmsName_Translated
+Vacant_apartments$CompanyName <- Vacant_apartments$CompanyName_Translated
+Vacant_apartments$StatusName <- Vacant_apartments$StatusName_Translated
+Vacant_apartments$PropertyTypeName <- Vacant_apartments$PropertyTypeName_Translated
+```
+
+```{r}
+Vacant_apartments <- Vacant_apartments[, !grepl("translated$", names(Vacant_apartments))]
+Vacant_apartments <- Vacant_apartments %>% clean_names()
+```
+
+```{r}
+#renaming elections table:
+Election_results <- Election_results %>% 
+  mutate(
+    settlement.name = case_when(
+    settlement.name == "horizons" ~ "Ofakim",
+    settlement.name == "The view of the Galilee" ~ "Nof Hagalil",
+    settlement.name == "my peace" ~  "Shlomi" ,
+    settlement.name == "routes" ~ "Netivot",
+    settlement.name == "streets" ~ "Rehovot",
+    settlement.name == "Area" ~ "Azur",
+    settlement.name == "רחובות" ~ "Rehovot",
+    settlement.name == "fresh" ~ "Raanana",
+    settlement.name == "sons of Aish" ~ "Bnei Aish",
+    settlement.name == "a horse" ~ "Susya",
+    settlement.name == "scythe" ~ "Hermesh",
+    settlement.name == "pestle" ~ "Eli",
+    settlement.name == "ridges" ~ "Rekhasim",
+    settlement.name == "crimson" ~ "Argaman",
+    settlement.name == "earing" ~ "Harish",
+    settlement.name == "anemone" ~ "Kalanit",
+    settlement.name == "I will tell" ~ "Metzad",
+    settlement.name == "crop" ~ "Yevul",
+    settlement.name == "stake" ~ "Yated",
+    settlement.name == "Come on, Zoran" ~ "Kadima-Zoran",
+    settlement.name == "a fence" ~ "Gedera",
+    settlement.name == "measles" ~ "Hatzeva",
+    settlement.name == "Furia-Neva is working" ~ "Poria–Neve Oved",
+    settlement.name == "Ptolemy Yosef" ~ "Talmei Yosef",
+    settlement.name == "Solid stones" ~ "Avnei Eitan",
+    settlement.name == "horn" ~ "Tzofar",
+    settlement.name == "Horns of Samaria" ~ "Karnei Shomron",
+    settlement.name == "sapphire" ~ "Sapir",
+    settlement.name == "dawn" ~ "Tzohar",
+    settlement.name == "truffle" ~ "Kmehin",
+    settlement.name == "Chinese radish" ~ "Kadesh Barnea",
+    settlement.name == "towers" ~ "Migdalim",
+    settlement.name == "harvesting" ~ "Katzir",
+    settlement.name == "emerald" ~ "Bareket",
+    settlement.name == "A souvenir of her house" ~ "Mazkeret Batya",
+    settlement.name == "darling" ~ "Yakir",
+    settlement.name == "tower" ~ "Migdal",
+    settlement.name == "Ancients" ~ "Kedumim",
+    settlement.name == "face friend" ~ "Ma'ale Hever",
+    settlement.name == "on" ~ "Sha'al",
+    settlement.name == "Gold leaves" ~ "Alei Zahav",
+    settlement.name == "better" ~ "Yitav",
+    settlement.name == "Bethel" ~ "Beit El",
+    settlement.name == "Sheila" ~ "Shilo",
+    settlement.name == "Gems" ~ "Avnei Hefetz",
+    settlement.name == "Tarshiha" ~ "Ma'alot-Tarshiha",
+    settlement.name == "diligent" ~ "Harutzim",
+    settlement.name == "Roy" ~ "Ro'i",
+    settlement.name == "flint" ~ "Halamish",
+    settlement.name == "roots" ~ "Shorashim",
+    settlement.name == "Absalom" ~ "Avshalom",
+    settlement.name == "Dotan's introduction" ~ "Mevo Dotan",
+    settlement.name == "The Galilee" ~ "Gornot HaGalil",
+    settlement.name == "Shafram" ~ "Shfar'am",
+    settlement.name == "torches" ~ "Lapidot",
+    settlement.name == "Apple village" ~ "Kfar Tapuach",
+    settlement.name == "its openings" ~ "Petahya",
+    settlement.name == "grape" ~ "Einav",
+    settlement.name == "Dubb" ~ "Dovev",
+    settlement.name == "antimony" ~ "Kahal",
+    settlement.name == "Yavnal" ~ "Yavne'el",
+    settlement.name == "hardware" ~ "Hamra",
+    settlement.name == "garden fruit" ~ "Pri Gan",
+    settlement.name == "Almond" ~ "Shaked",
+    settlement.name == "Head turned" ~ "Rosh Pinna",
+    settlement.name == "Frankincense" ~ "Ma'ale Levona",
+    settlement.name == "Abraham's demons" ~ "Sdei Avraham",
+    TRUE ~ settlement.name  # Keeps other values unchanged
+    )
+  )
+```
+
+```{r include=FALSE, paged.print=TRUE}
+Vacant_apartments
+Purcheuses <- Purcheuses %>% 
+  rename(
+    city_lms_name = "lamas_name"
+  )
+Purcheuses
+Properties_rooms
+```
+
+
+```{r}
+Properties_rooms <- drop_na(Properties_rooms) # 4 apartments who add no floor data was removed
+# replacing NA's with 0's when there where no apartment purchased.
+Purcheuses <- Purcheuses %>%
+  mutate(
+    x3_rooms_apartments = ifelse(is.na(x3_rooms_apartments), 0, x3_rooms_apartments),
+    x4_rooms_apartments = ifelse(is.na(x4_rooms_apartments), 0, x4_rooms_apartments),
+    average_price_nis_3_rooms_apartments = ifelse(is.na(average_price_nis_3_rooms_apartments), 0, average_price_nis_3_rooms_apartments),
+    average_price_nis_4_rooms_apartments = ifelse(is.na(average_price_nis_4_rooms_apartments), 0, average_price_nis_4_rooms_apartments)
+  )
+```
+
+```{r}
+# Group the dataframe by 'settlement.ID'
+grouped_by_settlement <- Election_results %>% group_by(settlement.ID)
+
+# Select columns from index 11 onwards (assuming 'settlement.ID' is column 11)
+cols_to_sum <- names(Election_results)[8:ncol(Election_results)]
+
+# Sum each column from 12 onwards within each settlement group
+settlement_sums <- grouped_by_settlement %>%
+  summarise(across(cols_to_sum, sum))  # Sum each column using 'across'
+
+citynames_and_id <- Election_results %>% distinct(settlement.ID,settlement.name)
+
+settlement_sums <- left_join(settlement_sums, citynames_and_id, by = "settlement.ID")
+
+# Print the summary table with settlement ID and summed column values
+print(settlement_sums)
+```
+
+```{r}
+chopped_elections_sum <- settlement_sums[, 6:ncol(settlement_sums)]
+
+chopped_elections_sum$max_value <- apply(chopped_elections_sum, 1, max)
+
+set.seed(123)
+# Function to get column name of max value in each row
+max_col_names <- apply(chopped_elections_sum, 1, function(row) {
+  colnames(chopped_elections_sum)[which.max(row)]
+})
+
+# Add the result as a new column to the original data frame
+chopped_elections_sum$max_col_name <- max_col_names
+
+find_max_value <- function(row) {
+  if (any(is.na(row))) {
+    NA  # Return NA if there are any NA values in the row
+  } else {
+    max(row)
+  }
+}
+
+
+
+chopped_elections_sum$max_value <- apply(chopped_elections_sum, 1, function(row) max(as.numeric(row), na.rm = TRUE))
+
+new_elections_sum <- chopped_elections_sum[,(ncol(chopped_elections_sum)-2):ncol(chopped_elections_sum)]
+
+new_elections_sum <- left_join(new_elections_sum, citynames_and_id, by = "settlement.name")
+new_elections_sum <- new_elections_sum[,c(4,1,3,2)]
+hepler_df <- settlement_sums[,c(1,2,3)]
+
+new_elections_sum <- left_join(new_elections_sum, hepler_df, by = "settlement.ID")
+new_elections_sum$VoterPrecentage <- new_elections_sum$Voters/new_elections_sum$BZB
+new_elections_sum$Party.Precentage <- new_elections_sum$max_value/new_elections_sum$Voters
+new_elections_sum
+Kneset25_summed <- new_elections_sum
+```
+```{r}
+Kneset21 <- read.csv("../data/Translated/kneset21.csv")
+
+Kneset22 <- read.csv("../data/Translated/kneset22.csv")
+
+Kneset23 <- read.csv("../data/Translated/Kneset23.csv")
+
+Kneset24 <- read.csv("../data/Translated/Kneset24.csv")
+```
+
+```{r}
+Kneset21
+Kneset22
+Kneset23
+Kneset24
+```
+
+```{r}
+# Renaming the Hebrew variables:
+Kneset21 <- Kneset21 %>% 
+  rename(
+    Avoda = "אמת",
+    Yahadut_Hatora = "ג",
+    Balad = "דעם",
+    Hadash = "ום",
+    Zehut = "ז",
+    Vatikim = "זי",
+    BritOlam = "זך",
+    Yahad = "זנ",
+    Zomet = "זץ",
+    Bait_Yehudi = "טב",
+    Yashar = "י",
+    Gush_Tanachi = "יז",
+    Bnei_Brit = "ין",
+    Acharayut = "יץ",
+    Kulanu_Yamin = "כ",
+    Tikva_Leshinui = "ךק",
+    Israel_Beitenu = "ל",
+    Halicud = "מחל",
+    Merets = "מרצ",
+    Yamin_Hadash = "נ",
+    Betach = "ן",
+    Zchutotinu = "נז",
+    Kvod_haadam = "ןך",
+    Reforma = "נך",
+    Manhigut_Hevratit = "ןנ",
+    Magen = "נץ",
+    Gesher = "נר",
+    Kahul_lavan = "פה",
+    Piratim = "ףז",
+    Pashut_Ahava = "ףי",
+    Hinuch = "ףך",
+    Shavim = "ףנ",
+    NaNach = "ףץ",
+    Calacla_Yeroka = "ץ",
+    Ofek_Hadash = "ץז",
+    Ani_VeAta = "ץי",
+    Zedek_Hevrati = "צק",
+    Zedek_Lakol = "ק",
+    Erez_Israel_Shelano = "קי",
+    Mehathala = "קן",
+    Kol_Israel = "קף",
+    Reshima_Aravit = "ר",
+    Shas = "שס",
+  )
+
+# mutate the names of the cities that are in other datasets.
+Kneset21 <- Kneset21 %>% 
+  mutate(
+    settlement.name = case_when(
+    settlement.name =="horizons" ~ "Ofakim",
+    settlement.name =="The view of the Galilee" ~ "Nof Hagalil",
+    settlement.name == "my peace" ~  "Shlomi" ,
+    settlement.name == "routes" ~ "Netivot",
+    settlement.name == "horizons" ~ "Ofakim",
+    settlement.name == "The view of the Galilee" ~ "Nof Hagalil",
+    settlement.name == "my peace" ~  "Shlomi" ,
+    settlement.name == "routes" ~ "Netivot",
+    settlement.name == "streets" ~ "Rehovot",
+    settlement.name == "Area" ~ "Azur",
+    settlement.name == "רחובות" ~ "Rehovot",
+    settlement.name == "fresh" ~ "Raanana",
+    settlement.name == "sons of Aish" ~ "Bnei Aish",
+    settlement.name == "a horse" ~ "Susya",
+    settlement.name == "scythe" ~ "Hermesh",
+    settlement.name == "pestle" ~ "Eli",
+    settlement.name == "ridges" ~ "Rekhasim",
+    settlement.name == "crimson" ~ "Argaman",
+    settlement.name == "earing" ~ "Harish",
+    settlement.name == "anemone" ~ "Kalanit",
+    settlement.name == "I will tell" ~ "Metzad",
+    settlement.name == "crop" ~ "Yevul",
+    settlement.name == "stake" ~ "Yated",
+    settlement.name == "Come on, Zoran" ~ "Kadima-Zoran",
+    settlement.name == "a fence" ~ "Gedera",
+    settlement.name == "measles" ~ "Hatzeva",
+    settlement.name == "Furia-Neva is working" ~ "Poria–Neve Oved",
+    settlement.name == "Ptolemy Yosef" ~ "Talmei Yosef",
+    settlement.name == "Solid stones" ~ "Avnei Eitan",
+    settlement.name == "horn" ~ "Tzofar",
+    settlement.name == "Horns of Samaria" ~ "Karnei Shomron",
+    settlement.name == "sapphire" ~ "Sapir",
+    settlement.name == "dawn" ~ "Tzohar",
+    settlement.name == "truffle" ~ "Kmehin",
+    settlement.name == "Chinese radish" ~ "Kadesh Barnea",
+    settlement.name == "towers" ~ "Migdalim",
+    settlement.name == "harvesting" ~ "Katzir",
+    settlement.name == "emerald" ~ "Bareket",
+    settlement.name == "A souvenir of her house" ~ "Mazkeret Batya",
+    settlement.name == "darling" ~ "Yakir",
+    settlement.name == "tower" ~ "Migdal",
+    settlement.name == "Ancients" ~ "Kedumim",
+    settlement.name == "face friend" ~ "Ma'ale Hever",
+    settlement.name == "on" ~ "Sha'al",
+    settlement.name == "Gold leaves" ~ "Alei Zahav",
+    settlement.name == "better" ~ "Yitav",
+    settlement.name == "Bethel" ~ "Beit El",
+    settlement.name == "Sheila" ~ "Shilo",
+    settlement.name == "Gems" ~ "Avnei Hefetz",
+    settlement.name == "Tarshiha" ~ "Ma'alot-Tarshiha",
+    settlement.name == "diligent" ~ "Harutzim",
+    settlement.name == "Roy" ~ "Ro'i",
+    settlement.name == "flint" ~ "Halamish",
+    settlement.name == "roots" ~ "Shorashim",
+    settlement.name == "Absalom" ~ "Avshalom",
+    settlement.name == "Dotan's introduction" ~ "Mevo Dotan",
+    settlement.name == "The Galilee" ~ "Gornot HaGalil",
+    settlement.name == "Shafram" ~ "Shfar'am",
+    settlement.name == "torches" ~ "Lapidot",
+    settlement.name == "Apple village" ~ "Kfar Tapuach",
+    settlement.name == "its openings" ~ "Petahya",
+    settlement.name == "grape" ~ "Einav",
+    settlement.name == "Dubb" ~ "Dovev",
+    settlement.name == "antimony" ~ "Kahal",
+    settlement.name == "Yavnal" ~ "Yavne'el",
+    settlement.name == "hardware" ~ "Hamra",
+    settlement.name == "garden fruit" ~ "Pri Gan",
+    settlement.name == "Almond" ~ "Shaked",
+    settlement.name == "Head turned" ~ "Rosh Pinna",
+    settlement.name == "Frankincense" ~ "Ma'ale Levona",
+    settlement.name == "Abraham's demons" ~ "Sdei Avraham",
+    TRUE ~ settlement.name  # Keeps other values unchanged
+    )
+  )
+```
+
+```{r}
+# Renaming the Hebrew variables:
+Kneset22 <- Kneset22 %>% 
+  rename(
+    Avoda = "אמת",
+    Yahadut_Hatora = "ג",
+    Hadash_Raam = "ודעם",
+    Ozma_Calcalit = "ז",
+    Democratura = "זכ",
+    Zegut = "זן",
+    Zomet = "זץ",
+    Yamina = "טב",
+    Manhigut_Hevratit = "י",
+    Adom_lavan = "יז",
+    Notsrit_liberalit = "ינ",
+    Kvod_haadam = "יף",
+    Gush_Tanachi = "יק",
+    Noam = "כ",
+    Ahdut_amamit = "כי",
+    Otsma_yehudit = "כף",
+    Israel_Beitenu = "ל",
+    Halicud = "מחל",
+    Merets = "מרצ",
+    Mitkademt = "נ",
+    Kavod_veshivion = "נך",
+    Kol_Israel = "נץ",
+    Kahul_Lavan = "פה",
+    Piratim = "ףז",
+    Zedek = "צ",
+    Zafon = "צן",
+    Daam = "ץ",
+    Zchutotinu = "ק",
+    Seder_Hadash = "קך",
+    Kama = "קץ",
+    Yamin_hiluni = "רק",
+    Shas = "שס",
+  )
+
+# mutate the names of the cities that are in other datasets.
+Kneset22 <- Kneset22 %>% 
+  mutate(
+    settlement.name = case_when(
+    settlement.name =="horizons" ~ "Ofakim",
+    settlement.name =="The view of the Galilee" ~ "Nof Hagalil",
+    settlement.name == "my peace" ~  "Shlomi" ,
+    settlement.name == "routes" ~ "Netivot",
+    settlement.name == "horizons" ~ "Ofakim",
+    settlement.name == "The view of the Galilee" ~ "Nof Hagalil",
+    settlement.name == "my peace" ~  "Shlomi" ,
+    settlement.name == "routes" ~ "Netivot",
+    settlement.name == "streets" ~ "Rehovot",
+    settlement.name == "Area" ~ "Azur",
+    settlement.name == "רחובות" ~ "Rehovot",
+    settlement.name == "fresh" ~ "Raanana",
+    settlement.name == "sons of Aish" ~ "Bnei Aish",
+    settlement.name == "a horse" ~ "Susya",
+    settlement.name == "scythe" ~ "Hermesh",
+    settlement.name == "pestle" ~ "Eli",
+    settlement.name == "ridges" ~ "Rekhasim",
+    settlement.name == "crimson" ~ "Argaman",
+    settlement.name == "earing" ~ "Harish",
+    settlement.name == "anemone" ~ "Kalanit",
+    settlement.name == "I will tell" ~ "Metzad",
+    settlement.name == "crop" ~ "Yevul",
+    settlement.name == "stake" ~ "Yated",
+    settlement.name == "Come on, Zoran" ~ "Kadima-Zoran",
+    settlement.name == "a fence" ~ "Gedera",
+    settlement.name == "measles" ~ "Hatzeva",
+    settlement.name == "Furia-Neva is working" ~ "Poria–Neve Oved",
+    settlement.name == "Ptolemy Yosef" ~ "Talmei Yosef",
+    settlement.name == "Solid stones" ~ "Avnei Eitan",
+    settlement.name == "horn" ~ "Tzofar",
+    settlement.name == "Horns of Samaria" ~ "Karnei Shomron",
+    settlement.name == "sapphire" ~ "Sapir",
+    settlement.name == "dawn" ~ "Tzohar",
+    settlement.name == "truffle" ~ "Kmehin",
+    settlement.name == "Chinese radish" ~ "Kadesh Barnea",
+    settlement.name == "towers" ~ "Migdalim",
+    settlement.name == "harvesting" ~ "Katzir",
+    settlement.name == "emerald" ~ "Bareket",
+    settlement.name == "A souvenir of her house" ~ "Mazkeret Batya",
+    settlement.name == "darling" ~ "Yakir",
+    settlement.name == "tower" ~ "Migdal",
+    settlement.name == "Ancients" ~ "Kedumim",
+    settlement.name == "face friend" ~ "Ma'ale Hever",
+    settlement.name == "on" ~ "Sha'al",
+    settlement.name == "Gold leaves" ~ "Alei Zahav",
+    settlement.name == "better" ~ "Yitav",
+    settlement.name == "Bethel" ~ "Beit El",
+    settlement.name == "Sheila" ~ "Shilo",
+    settlement.name == "Gems" ~ "Avnei Hefetz",
+    settlement.name == "Tarshiha" ~ "Ma'alot-Tarshiha",
+    settlement.name == "diligent" ~ "Harutzim",
+    settlement.name == "Roy" ~ "Ro'i",
+    settlement.name == "flint" ~ "Halamish",
+    settlement.name == "roots" ~ "Shorashim",
+    settlement.name == "Absalom" ~ "Avshalom",
+    settlement.name == "Dotan's introduction" ~ "Mevo Dotan",
+    settlement.name == "The Galilee" ~ "Gornot HaGalil",
+    settlement.name == "Shafram" ~ "Shfar'am",
+    settlement.name == "torches" ~ "Lapidot",
+    settlement.name == "Apple village" ~ "Kfar Tapuach",
+    settlement.name == "its openings" ~ "Petahya",
+    settlement.name == "grape" ~ "Einav",
+    settlement.name == "Dubb" ~ "Dovev",
+    settlement.name == "antimony" ~ "Kahal",
+    settlement.name == "Yavnal" ~ "Yavne'el",
+    settlement.name == "hardware" ~ "Hamra",
+    settlement.name == "garden fruit" ~ "Pri Gan",
+    settlement.name == "Almond" ~ "Shaked",
+    settlement.name == "Head turned" ~ "Rosh Pinna",
+    settlement.name == "Frankincense" ~ "Ma'ale Levona",
+    settlement.name == "Abraham's demons" ~ "Sdei Avraham",
+    TRUE ~ settlement.name  # Keeps other values unchanged
+    )
+  )
+```
+
+```{r}
+# Renaming the Hebrew variables:
+Kneset23 <- Kneset23 %>% 
+  rename(
+    Avoda = "אמת",
+    Yahadut_Hatora = "ג",
+    Hadash_Raam = "ודעם",
+    Ozma_Liberalit = "ז",
+    Peula_LeIsrael = "זך",
+    Zomet = "זץ",
+    Yamina = "טב",
+    Hazon = "י",
+    Adom_lavan = "יז",
+    Ihud_Habrit = "ינ",
+    Gush_Tanachi = "יק",
+    Manhigut_Hevratit = "יר",
+    Halev_Hayuhudi = "כ",
+    Ani_VeAta = "כן",
+    Israel_Beitenu = "ל",
+    Halicud = "מחל",
+    Kol_Hanashim = "נ",
+    Koach_Lehashpiaa = "נז",
+    Kama = "ני",
+    Mitkademet = "נק",
+    Ozma_Yehudit = "נץ",
+    Kahul_Lavan = "פה",
+    Piratim = "ףז",
+    Daam = "ץ",
+    Israelist = "ק",
+    Shema = "קי",
+    Seder_Hadash = "קך",
+    Mishpat_Zedek = "קץ",
+    Shas = "שס",
+  )
+
+# mutate the names of the cities that are in other datasets.
+Kneset23 <- Kneset23 %>% 
+  mutate(
+    settlement.name = case_when(
+    settlement.name =="horizons" ~ "Ofakim",
+    settlement.name =="The view of the Galilee" ~ "Nof Hagalil",
+    settlement.name == "my peace" ~  "Shlomi" ,
+    settlement.name == "routes" ~ "Netivot",
+    settlement.name == "horizons" ~ "Ofakim",
+    settlement.name == "The view of the Galilee" ~ "Nof Hagalil",
+    settlement.name == "my peace" ~  "Shlomi" ,
+    settlement.name == "routes" ~ "Netivot",
+    settlement.name == "streets" ~ "Rehovot",
+    settlement.name == "Area" ~ "Azur",
+    settlement.name == "רחובות" ~ "Rehovot",
+    settlement.name == "fresh" ~ "Raanana",
+    settlement.name == "sons of Aish" ~ "Bnei Aish",
+    settlement.name == "a horse" ~ "Susya",
+    settlement.name == "scythe" ~ "Hermesh",
+    settlement.name == "pestle" ~ "Eli",
+    settlement.name == "ridges" ~ "Rekhasim",
+    settlement.name == "crimson" ~ "Argaman",
+    settlement.name == "earing" ~ "Harish",
+    settlement.name == "anemone" ~ "Kalanit",
+    settlement.name == "I will tell" ~ "Metzad",
+    settlement.name == "crop" ~ "Yevul",
+    settlement.name == "stake" ~ "Yated",
+    settlement.name == "Come on, Zoran" ~ "Kadima-Zoran",
+    settlement.name == "a fence" ~ "Gedera",
+    settlement.name == "measles" ~ "Hatzeva",
+    settlement.name == "Furia-Neva is working" ~ "Poria–Neve Oved",
+    settlement.name == "Ptolemy Yosef" ~ "Talmei Yosef",
+    settlement.name == "Solid stones" ~ "Avnei Eitan",
+    settlement.name == "horn" ~ "Tzofar",
+    settlement.name == "Horns of Samaria" ~ "Karnei Shomron",
+    settlement.name == "sapphire" ~ "Sapir",
+    settlement.name == "dawn" ~ "Tzohar",
+    settlement.name == "truffle" ~ "Kmehin",
+    settlement.name == "Chinese radish" ~ "Kadesh Barnea",
+    settlement.name == "towers" ~ "Migdalim",
+    settlement.name == "harvesting" ~ "Katzir",
+    settlement.name == "emerald" ~ "Bareket",
+    settlement.name == "A souvenir of her house" ~ "Mazkeret Batya",
+    settlement.name == "darling" ~ "Yakir",
+    settlement.name == "tower" ~ "Migdal",
+    settlement.name == "Ancients" ~ "Kedumim",
+    settlement.name == "face friend" ~ "Ma'ale Hever",
+    settlement.name == "on" ~ "Sha'al",
+    settlement.name == "Gold leaves" ~ "Alei Zahav",
+    settlement.name == "better" ~ "Yitav",
+    settlement.name == "Bethel" ~ "Beit El",
+    settlement.name == "Sheila" ~ "Shilo",
+    settlement.name == "Gems" ~ "Avnei Hefetz",
+    settlement.name == "Tarshiha" ~ "Ma'alot-Tarshiha",
+    settlement.name == "diligent" ~ "Harutzim",
+    settlement.name == "Roy" ~ "Ro'i",
+    settlement.name == "flint" ~ "Halamish",
+    settlement.name == "roots" ~ "Shorashim",
+    settlement.name == "Absalom" ~ "Avshalom",
+    settlement.name == "Dotan's introduction" ~ "Mevo Dotan",
+    settlement.name == "The Galilee" ~ "Gornot HaGalil",
+    settlement.name == "Shafram" ~ "Shfar'am",
+    settlement.name == "torches" ~ "Lapidot",
+    settlement.name == "Apple village" ~ "Kfar Tapuach",
+    settlement.name == "its openings" ~ "Petahya",
+    settlement.name == "grape" ~ "Einav",
+    settlement.name == "Dubb" ~ "Dovev",
+    settlement.name == "antimony" ~ "Kahal",
+    settlement.name == "Yavnal" ~ "Yavne'el",
+    settlement.name == "hardware" ~ "Hamra",
+    settlement.name == "garden fruit" ~ "Pri Gan",
+    settlement.name == "Almond" ~ "Shaked",
+    settlement.name == "Head turned" ~ "Rosh Pinna",
+    settlement.name == "Frankincense" ~ "Ma'ale Levona",
+    settlement.name == "Abraham's demons" ~ "Sdei Avraham",
+    TRUE ~ settlement.name  # Keeps other values unchanged
+    )
+  )
+```
+
+
+```{r}
+# Renaming the Hebrew variables:
+Kneset24 <- Kneset24 %>% 
+  rename(
+    Avoda = "אמת",
+    Yamina = "ב",
+    Yahadut_Hatora = "ג",
+    Hadash_Raam = "ודעם",
+    Zomet = "זץ",
+    Zionot_datit = "ט",
+    Gimlaim = "י",
+    Hacalcalit_Hadash = "יז",
+    Brit_Shotfut = "ינ",
+    Gush_Tanachi = "יק",
+    Manhigut_Hevratit = "יר",
+    Kvod_haadam = "יף",
+    Halev_Hayehudi = "כ",
+    Ani_VeAta = "כך",
+    Kahul_Lavan = "כן",
+    Israel_Beitenu = "ל",
+    Halicud = "מחל",
+    Merets = "מרצ",
+    Kama = "נ",
+    Olam_Hadash = "ני",
+    Anachnu = "נר",
+    Reshima_aravit = "עם",
+    Yesh_atid = "פה",
+    Piratim = "ףז",
+    Azmenu = "צי",
+    Hets = "צף",
+    Maan = "צכ",
+    Daam = "ץ",
+    Efshari = "ק",
+    Shema = "קי",
+    Seder_Hadash = "קך",
+    Mishpat_Zedek = "קץ",
+    Rapee = "ר",
+    Hatikva_Leshinui = "ר",
+    Democratit = "רק",
+    Am_Shalem = "רף",
+    Shas = "שס",
+    Tikva_Hadasha = "ת",
+  )
+
+# mutate the names of the cities that are in other datasets.
+Kneset24 <- Kneset24 %>% 
+  mutate(
+    settlement.name = case_when(
+    settlement.name =="horizons" ~ "Ofakim",
+    settlement.name =="The view of the Galilee" ~ "Nof Hagalil",
+    settlement.name == "my peace" ~  "Shlomi" ,
+    settlement.name == "routes" ~ "Netivot",
+    settlement.name == "horizons" ~ "Ofakim",
+    settlement.name == "The view of the Galilee" ~ "Nof Hagalil",
+    settlement.name == "my peace" ~  "Shlomi" ,
+    settlement.name == "routes" ~ "Netivot",
+    settlement.name == "streets" ~ "Rehovot",
+    settlement.name == "Area" ~ "Azur",
+    settlement.name == "רחובות" ~ "Rehovot",
+    settlement.name == "fresh" ~ "Raanana",
+    settlement.name == "sons of Aish" ~ "Bnei Aish",
+    settlement.name == "a horse" ~ "Susya",
+    settlement.name == "scythe" ~ "Hermesh",
+    settlement.name == "pestle" ~ "Eli",
+    settlement.name == "ridges" ~ "Rekhasim",
+    settlement.name == "crimson" ~ "Argaman",
+    settlement.name == "earing" ~ "Harish",
+    settlement.name == "anemone" ~ "Kalanit",
+    settlement.name == "I will tell" ~ "Metzad",
+    settlement.name == "crop" ~ "Yevul",
+    settlement.name == "stake" ~ "Yated",
+    settlement.name == "Come on, Zoran" ~ "Kadima-Zoran",
+    settlement.name == "a fence" ~ "Gedera",
+    settlement.name == "measles" ~ "Hatzeva",
+    settlement.name == "Furia-Neva is working" ~ "Poria–Neve Oved",
+    settlement.name == "Ptolemy Yosef" ~ "Talmei Yosef",
+    settlement.name == "Solid stones" ~ "Avnei Eitan",
+    settlement.name == "horn" ~ "Tzofar",
+    settlement.name == "Horns of Samaria" ~ "Karnei Shomron",
+    settlement.name == "sapphire" ~ "Sapir",
+    settlement.name == "dawn" ~ "Tzohar",
+    settlement.name == "truffle" ~ "Kmehin",
+    settlement.name == "Chinese radish" ~ "Kadesh Barnea",
+    settlement.name == "towers" ~ "Migdalim",
+    settlement.name == "harvesting" ~ "Katzir",
+    settlement.name == "emerald" ~ "Bareket",
+    settlement.name == "A souvenir of her house" ~ "Mazkeret Batya",
+    settlement.name == "darling" ~ "Yakir",
+    settlement.name == "tower" ~ "Migdal",
+    settlement.name == "Ancients" ~ "Kedumim",
+    settlement.name == "face friend" ~ "Ma'ale Hever",
+    settlement.name == "on" ~ "Sha'al",
+    settlement.name == "Gold leaves" ~ "Alei Zahav",
+    settlement.name == "better" ~ "Yitav",
+    settlement.name == "Bethel" ~ "Beit El",
+    settlement.name == "Sheila" ~ "Shilo",
+    settlement.name == "Gems" ~ "Avnei Hefetz",
+    settlement.name == "Tarshiha" ~ "Ma'alot-Tarshiha",
+    settlement.name == "diligent" ~ "Harutzim",
+    settlement.name == "Roy" ~ "Ro'i",
+    settlement.name == "flint" ~ "Halamish",
+    settlement.name == "roots" ~ "Shorashim",
+    settlement.name == "Absalom" ~ "Avshalom",
+    settlement.name == "Dotan's introduction" ~ "Mevo Dotan",
+    settlement.name == "The Galilee" ~ "Gornot HaGalil",
+    settlement.name == "Shafram" ~ "Shfar'am",
+    settlement.name == "torches" ~ "Lapidot",
+    settlement.name == "Apple village" ~ "Kfar Tapuach",
+    settlement.name == "its openings" ~ "Petahya",
+    settlement.name == "grape" ~ "Einav",
+    settlement.name == "Dubb" ~ "Dovev",
+    settlement.name == "antimony" ~ "Kahal",
+    settlement.name == "Yavnal" ~ "Yavne'el",
+    settlement.name == "hardware" ~ "Hamra",
+    settlement.name == "garden fruit" ~ "Pri Gan",
+    settlement.name == "Almond" ~ "Shaked",
+    settlement.name == "Head turned" ~ "Rosh Pinna",
+    settlement.name == "Frankincense" ~ "Ma'ale Levona",
+    settlement.name == "Abraham's demons" ~ "Sdei Avraham",
+    TRUE ~ settlement.name  # Keeps other values unchanged
+    )
+  )
+```
+
+
+```{r}
+# Group the dataframe by 'settlement.ID'
+Kneset21_grouped <- Kneset21 %>% group_by(settlement.ID)
+
+# Select columns from index 11 onwards (assuming 'settlement.ID' is column 11)
+cols_to_sum <- names(Kneset21)[4:ncol(Kneset21)]
+
+# Sum each column from 12 onwards within each settlement group
+settlement_sums <- Kneset21_grouped %>%
+  summarise(across(cols_to_sum, sum))  # Sum each column using 'across'
+
+citynames_and_id <- Kneset21 %>% distinct(settlement.ID,settlement.name)
+
+settlement_sums <- left_join(settlement_sums, citynames_and_id, by = "settlement.ID")
+
+chopped_elections_sum <- settlement_sums[, 6:ncol(settlement_sums)]
+
+chopped_elections_sum$max_value <- apply(chopped_elections_sum, 1, max)
+
+set.seed(123)
+# Function to get column name of max value in each row
+max_col_names <- apply(chopped_elections_sum, 1, function(row) {
+  colnames(chopped_elections_sum)[which.max(row)]
+})
+
+# Add the result as a new column to the original data frame
+chopped_elections_sum$max_col_name <- max_col_names
+
+find_max_value <- function(row) {
+  if (any(is.na(row))) {
+    NA  # Return NA if there are any NA values in the row
+  } else {
+    max(row)
+  }
+}
+
+
+
+chopped_elections_sum$max_value <- apply(chopped_elections_sum, 1, function(row) max(as.numeric(row), na.rm = TRUE))
+
+new_elections_sum <- chopped_elections_sum[,(ncol(chopped_elections_sum)-2):ncol(chopped_elections_sum)]
+
+new_elections_sum <- left_join(new_elections_sum, citynames_and_id, by = "settlement.name")
+new_elections_sum <- new_elections_sum[,c(4,1,3,2)]
+hepler_df <- settlement_sums[,c(1,2,3)]
+
+new_elections_sum <- left_join(new_elections_sum, hepler_df, by = "settlement.ID")
+new_elections_sum$VoterPrecentage <- new_elections_sum$Voters/new_elections_sum$BZB
+new_elections_sum$Party.Precentage <- new_elections_sum$max_value/new_elections_sum$Voters
+Kneset21_summed <- new_elections_sum
+
+Kneset21_summed
+```
+
+```{r}
+# Group the dataframe by 'settlement.ID'
+Kneset22_grouped <- Kneset22 %>% group_by(settlement.ID)
+
+# Select columns from index 11 onwards (assuming 'settlement.ID' is column 11)
+cols_to_sum <- names(Kneset22)[4:ncol(Kneset22)]
+
+# Sum each column from 12 onwards within each settlement group
+settlement_sums <- Kneset22_grouped %>%
+  summarise(across(cols_to_sum, sum))  # Sum each column using 'across'
+
+citynames_and_id <- Kneset22 %>% distinct(settlement.ID,settlement.name)
+
+settlement_sums <- left_join(settlement_sums, citynames_and_id, by = "settlement.ID")
+
+chopped_elections_sum <- settlement_sums[, 6:ncol(settlement_sums)]
+
+chopped_elections_sum$max_value <- apply(chopped_elections_sum, 1, max)
+
+set.seed(123)
+# Function to get column name of max value in each row
+max_col_names <- apply(chopped_elections_sum, 1, function(row) {
+  colnames(chopped_elections_sum)[which.max(row)]
+})
+
+# Add the result as a new column to the original data frame
+chopped_elections_sum$max_col_name <- max_col_names
+
+find_max_value <- function(row) {
+  if (any(is.na(row))) {
+    NA  # Return NA if there are any NA values in the row
+  } else {
+    max(row)
+  }
+}
+
+
+
+chopped_elections_sum$max_value <- apply(chopped_elections_sum, 1, function(row) max(as.numeric(row), na.rm = TRUE))
+
+new_elections_sum <- chopped_elections_sum[,(ncol(chopped_elections_sum)-2):ncol(chopped_elections_sum)]
+
+new_elections_sum <- left_join(new_elections_sum, citynames_and_id, by = "settlement.name")
+new_elections_sum <- new_elections_sum[,c(4,1,3,2)]
+hepler_df <- settlement_sums[,c(1,2,3)]
+
+new_elections_sum <- left_join(new_elections_sum, hepler_df, by = "settlement.ID")
+new_elections_sum$VoterPrecentage <- new_elections_sum$Voters/new_elections_sum$BZB
+new_elections_sum$Party.Precentage <- new_elections_sum$max_value/new_elections_sum$Voters
+Kneset22_summed <- new_elections_sum
+
+Kneset22_summed
+```
+
+```{r}
+# Group the dataframe by 'settlement.ID'
+Kneset23_grouped <- Kneset23 %>% group_by(settlement.ID)
+
+# Select columns from index 11 onwards (assuming 'settlement.ID' is column 11)
+cols_to_sum <- names(Kneset23)[8:ncol(Kneset23)]
+
+# Sum each column from 12 onwards within each settlement group
+settlement_sums <- Kneset23_grouped %>%
+  summarise(across(cols_to_sum, sum))  # Sum each column using 'across'
+
+citynames_and_id <- Kneset23 %>% distinct(settlement.ID,settlement.name)
+
+settlement_sums <- left_join(settlement_sums, citynames_and_id, by = "settlement.ID")
+
+chopped_elections_sum <- settlement_sums[, 6:ncol(settlement_sums)]
+
+chopped_elections_sum$max_value <- apply(chopped_elections_sum, 1, max)
+
+set.seed(123)
+# Function to get column name of max value in each row
+max_col_names <- apply(chopped_elections_sum, 1, function(row) {
+  colnames(chopped_elections_sum)[which.max(row)]
+})
+
+# Add the result as a new column to the original data frame
+chopped_elections_sum$max_col_name <- max_col_names
+
+find_max_value <- function(row) {
+  if (any(is.na(row))) {
+    NA  # Return NA if there are any NA values in the row
+  } else {
+    max(row)
+  }
+}
+
+
+
+chopped_elections_sum$max_value <- apply(chopped_elections_sum, 1, function(row) max(as.numeric(row), na.rm = TRUE))
+
+new_elections_sum <- chopped_elections_sum[,(ncol(chopped_elections_sum)-2):ncol(chopped_elections_sum)]
+
+new_elections_sum <- left_join(new_elections_sum, citynames_and_id, by = "settlement.name")
+new_elections_sum <- new_elections_sum[,c(4,1,3,2)]
+hepler_df <- settlement_sums[,c(1,2,3)]
+
+new_elections_sum <- left_join(new_elections_sum, hepler_df, by = "settlement.ID")
+new_elections_sum$VoterPrecentage <- new_elections_sum$Voters/new_elections_sum$BZB
+new_elections_sum$Party.Precentage <- new_elections_sum$max_value/new_elections_sum$Voters
+Kneset23_summed <- new_elections_sum
+
+Kneset23_summed
+```
+
+```{r}
+# Group the dataframe by 'settlement.ID'
+Kneset24_grouped <- Kneset24 %>% group_by(settlement.ID)
+
+# Select columns from index 11 onwards (assuming 'settlement.ID' is column 11)
+cols_to_sum <- names(Kneset24)[8:ncol(Kneset24)]
+
+# Sum each column from 12 onwards within each settlement group
+settlement_sums <- Kneset24_grouped %>%
+  summarise(across(cols_to_sum, sum))  # Sum each column using 'across'
+
+citynames_and_id <- Kneset24 %>% distinct(settlement.ID,settlement.name)
+
+settlement_sums <- left_join(settlement_sums, citynames_and_id, by = "settlement.ID")
+
+chopped_elections_sum <- settlement_sums[, 6:ncol(settlement_sums)]
+
+chopped_elections_sum$max_value <- apply(chopped_elections_sum, 1, max)
+
+set.seed(123)
+# Function to get column name of max value in each row
+max_col_names <- apply(chopped_elections_sum, 1, function(row) {
+  colnames(chopped_elections_sum)[which.max(row)]
+})
+
+# Add the result as a new column to the original data frame
+chopped_elections_sum$max_col_name <- max_col_names
+
+find_max_value <- function(row) {
+  if (any(is.na(row))) {
+    NA  # Return NA if there are any NA values in the row
+  } else {
+    max(row)
+  }
+}
+
+
+
+chopped_elections_sum$max_value <- apply(chopped_elections_sum, 1, function(row) max(as.numeric(row), na.rm = TRUE))
+
+new_elections_sum <- chopped_elections_sum[,(ncol(chopped_elections_sum)-2):ncol(chopped_elections_sum)]
+
+new_elections_sum <- left_join(new_elections_sum, citynames_and_id, by = "settlement.name")
+new_elections_sum <- new_elections_sum[,c(4,1,3,2)]
+hepler_df <- settlement_sums[,c(1,2,3)]
+
+new_elections_sum <- left_join(new_elections_sum, hepler_df, by = "settlement.ID")
+new_elections_sum$VoterPrecentage <- new_elections_sum$Voters/new_elections_sum$BZB
+new_elections_sum$Party.Precentage <- new_elections_sum$max_value/new_elections_sum$Voters
+Kneset24_summed <- new_elections_sum
+
+Kneset24_summed
+```
+```{r}
+# write.csv(Kneset21_summed, "../data/Translated/Kneset21_summed.csv")
+# write.csv(Kneset22_summed, "../data/Translated/Kneset22_summed.csv")
+# write.csv(Kneset23_summed, "../data/Translated/Kneset23_summed.csv")
+# write.csv(Kneset24_summed, "../data/Translated/Kneset24_summed.csv")
+# write.csv(Kneset25_summed, "../data/Translated/Kneset25_summed.csv")
+# write.csv(Properties_rooms, "../data/Translated/Properties_Rooms.csv")
+# write.csv(Purcheuses, "../data/Translated/Purchuses.csv")
+# write.csv(Vacant_apartments, "../data/Translated/Vacant_Apartments")
+```
+
+## Appendix
+
+### Data README
+
+```{r include_data_readme, comment=''}
+cat(readLines('../data/README.md'), sep = '\n')
+```
+
