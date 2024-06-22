@@ -1228,6 +1228,9 @@ Kneset24_summed
 # write.csv(Kneset23_summed, "../data/Translated/Kneset23_summed.csv")
 # write.csv(Kneset24_summed, "../data/Translated/Kneset24_summed.csv")
 # write.csv(Kneset25_summed, "../data/Translated/Kneset25_summed.csv")
+# write.csv(Properties_rooms, "../data/Translated/Properties_Rooms.csv")
+# write.csv(Purcheuses, "../data/Translated/Purchuses.csv")
+# write.csv(Vacant_apartments, "../data/Translated/Vacant_Apartments")
 ```
 
 ## Appendix
