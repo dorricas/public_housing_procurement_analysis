@@ -422,7 +422,7 @@ Election_results <- Election_results %>%
   )
 ```
 
-```{r include=FALSE, paged.print=TRUE}
+```{r echo=FALSE, paged.print=TRUE}
 Vacant_apartments
 Purcheuses <- Purcheuses %>% 
   rename(
@@ -1392,17 +1392,262 @@ Kneset24_summed <- new_elections_sum
 
 Kneset24_summed
 ```
+
 ```{r}
-write.csv(Kneset21_summed, "../data/Translated/Kneset20_summed.csv")
-write.csv(Kneset21_summed, "../data/Translated/Kneset21_summed.csv")
-write.csv(Kneset22_summed, "../data/Translated/Kneset22_summed.csv")
-write.csv(Kneset23_summed, "../data/Translated/Kneset23_summed.csv")
-write.csv(Kneset24_summed, "../data/Translated/Kneset24_summed.csv")
-write.csv(Kneset25_summed, "../data/Translated/Kneset25_summed.csv")
-write.csv(Properties_rooms, "../data/Translated/Properties_Rooms.csv")
-write.csv(Purcheuses, "../data/Translated/Purchuses.csv")
-write.csv(Vacant_apartments, "../data/Translated/Vacant_Apartments")
+# write.csv(Kneset21_summed, "../data/Translated/Kneset20_summed.csv")
+# write.csv(Kneset21_summed, "../data/Translated/Kneset21_summed.csv")
+# write.csv(Kneset22_summed, "../data/Translated/Kneset22_summed.csv")
+# write.csv(Kneset23_summed, "../data/Translated/Kneset23_summed.csv")
+# write.csv(Kneset24_summed, "../data/Translated/Kneset24_summed.csv")
+# write.csv(Kneset25_summed, "../data/Translated/Kneset25_summed.csv")
+# write.csv(Properties_rooms, "../data/Translated/Properties_Rooms.csv")
+# write.csv(Purcheuses, "../data/Translated/Purchuses.csv")
+# write.csv(Vacant_apartments, "../data/Translated/Vacant_Apartments")
 ```
+
+
+```{r}
+SocioEco <- read.csv("../data/Translated/SocioEconomic 2017 2019.csv")
+LamasNames <- read.csv("../data/Translated/LamasNamesCodes.csv")
+```
+
+```{r, renaming LamasNames to currected translation}
+LamasNames <- LamasNames %>% 
+  mutate(
+    lamas.name = case_when(
+    lamas.name =="horizons" ~ "Ofakim",
+    lamas.name =="The view of the Galilee" ~ "Nof Hagalil",
+    lamas.name == "my peace" ~  "Shlomi" ,
+    lamas.name == "routes" ~ "Netivot",
+    lamas.name == "horizons" ~ "Ofakim",
+    lamas.name == "The view of the Galilee" ~ "Nof Hagalil",
+    lamas.name == "my peace" ~  "Shlomi" ,
+    lamas.name == "routes" ~ "Netivot",
+    lamas.name == "streets" ~ "Rehovot",
+    lamas.name == "Area" ~ "Azur",
+    lamas.name == "רחובות" ~ "Rehovot",
+    lamas.name == "fresh" ~ "Raanana",
+    lamas.name == "sons of Aish" ~ "Bnei Aish",
+    lamas.name == "a horse" ~ "Susya",
+    lamas.name == "scythe" ~ "Hermesh",
+    lamas.name == "pestle" ~ "Eli",
+    lamas.name == "ridges" ~ "Rekhasim",
+    lamas.name == "crimson" ~ "Argaman",
+    lamas.name == "earing" ~ "Harish",
+    lamas.name == "anemone" ~ "Kalanit",
+    lamas.name == "I will tell" ~ "Metzad",
+    lamas.name == "crop" ~ "Yevul",
+    lamas.name == "stake" ~ "Yated",
+    lamas.name == "Come on, Zoran" ~ "Kadima-Zoran",
+    lamas.name == "a fence" ~ "Gedera",
+    lamas.name == "measles" ~ "Hatzeva",
+    lamas.name == "Furia-Neva is working" ~ "Poria–Neve Oved",
+    lamas.name == "Ptolemy Yosef" ~ "Talmei Yosef",
+    lamas.name == "Solid stones" ~ "Avnei Eitan",
+    lamas.name == "horn" ~ "Tzofar",
+    lamas.name == "Horns of Samaria" ~ "Karnei Shomron",
+    lamas.name == "sapphire" ~ "Sapir",
+    lamas.name == "dawn" ~ "Tzohar",
+    lamas.name == "truffle" ~ "Kmehin",
+    lamas.name == "Chinese radish" ~ "Kadesh Barnea",
+    lamas.name == "towers" ~ "Migdalim",
+    lamas.name == "harvesting" ~ "Katzir",
+    lamas.name == "emerald" ~ "Bareket",
+    lamas.name == "A souvenir of her house" ~ "Mazkeret Batya",
+    lamas.name == "darling" ~ "Yakir",
+    lamas.name == "tower" ~ "Migdal",
+    lamas.name == "Ancients" ~ "Kedumim",
+    lamas.name == "face friend" ~ "Ma'ale Hever",
+    lamas.name == "on" ~ "Sha'al",
+    lamas.name == "Gold leaves" ~ "Alei Zahav",
+    lamas.name == "better" ~ "Yitav",
+    lamas.name == "Bethel" ~ "Beit El",
+    lamas.name == "Sheila" ~ "Shilo",
+    lamas.name == "Gems" ~ "Avnei Hefetz",
+    lamas.name == "Tarshiha" ~ "Ma'alot-Tarshiha",
+    lamas.name == "diligent" ~ "Harutzim",
+    lamas.name == "Roy" ~ "Ro'i",
+    lamas.name == "flint" ~ "Halamish",
+    lamas.name == "roots" ~ "Shorashim",
+    lamas.name == "Absalom" ~ "Avshalom",
+    lamas.name == "Dotan's introduction" ~ "Mevo Dotan",
+    lamas.name == "The Galilee" ~ "Gornot HaGalil",
+    lamas.name == "Shafram" ~ "Shfar'am",
+    lamas.name == "torches" ~ "Lapidot",
+    lamas.name == "Apple village" ~ "Kfar Tapuach",
+    lamas.name == "its openings" ~ "Petahya",
+    lamas.name == "grape" ~ "Einav",
+    lamas.name == "Dubb" ~ "Dovev",
+    lamas.name == "antimony" ~ "Kahal",
+    lamas.name == "Yavnal" ~ "Yavne'el",
+    lamas.name == "hardware" ~ "Hamra",
+    lamas.name == "garden fruit" ~ "Pri Gan",
+    lamas.name == "Almond" ~ "Shaked",
+    lamas.name == "Head turned" ~ "Rosh Pinna",
+    lamas.name == "Frankincense" ~ "Ma'ale Levona",
+    lamas.name == "Abraham's demons" ~ "Sdei Avraham",
+    TRUE ~ lamas.name  # Keeps other values unchanged
+    )
+  )
+```
+
+
+```{r, joining currected translation to SocioEco DF}
+SocioEco <- left_join(SocioEco, LamasNames, by = c("CODE.OF.LOCALITY" = "lamas.code"))
+SocioEco <- SocioEco[,c(1,6,3,4,5)]
+SocioEco
+```
+
+```{r}
+Kneset21_summed_joined <- left_join(Kneset21_summed,SocioEco, by = c("settlement.name" = "lamas.name" ))
+Kneset21_summed_joined
+# # Create the bar plot
+# ggplot(Kneset21_summed_joined, aes(x = CLUSTER.2019)) +
+#   geom_bar(fill = "blue", color = "black", alpha = 0.7) +
+#   facet_wrap(~ max_col_name, scales = "free_y") +
+#   labs(title = "Bar Plot of INDEX.POPULATION.2019 by max_col_name",
+#        x = "INDEX.POPULATION.2019",
+#        y = "Count") +
+#   theme_minimal()
+
+
+# Summarize and filter the data
+filtered_data <- Kneset21_summed_joined %>%
+  group_by(max_col_name, CLUSTER.2019) %>%
+  summarise(count = n()) %>%
+  ungroup() %>%
+  group_by(max_col_name) %>%
+  filter(sum(count) > 16)
+
+# Create the bar plot
+ggplot(filtered_data, aes(x = CLUSTER.2019, y = count)) +
+  geom_bar(stat = "identity", fill = "blue", color = "black", alpha = 0.7) +
+  facet_wrap(~ max_col_name, scales = "free_y") +
+  labs(title = "Bar Plot of INDEX.POPULATION.2019 by max_col_name",
+       x = "INDEX.POPULATION.2019",
+       y = "Count") +
+  theme_minimal()
+
+```
+
+
+```{r}
+Properties_rooms <- left_join(Properties_rooms,LamasNames, by = c("city_lms_name" = "lamas.name"))
+```
+
+
+```{r}
+# Purcheuses
+# Properties_rooms
+# Kneset25_summed
+Properties_room_sum <- Properties_rooms %>% 
+  group_by(city_lms_name) %>% 
+  summarise(total = sum(one_rooms + two_rooms + three_rooms + four_rooms + five_rooms + six_rooms + seven_rooms +  eight_rooms + nine_rooms + ten_rooms + more_rooms, na.rm = TRUE))
+
+
+Properties_room_sum <-left_join(Properties_room_sum,Kneset25_summed, by = c("city_lms_name" = "settlement.name"))
+Properties_room_sum <- Properties_room_sum %>% drop_na()
+Properties_room_sum <- Properties_room_sum[order(Properties_room_sum$VoterPrecentage),]
+
+total_max <- max(Properties_room_sum$total, na.rm = TRUE)
+Properties_room_sum$total.precentage <- (Properties_room_sum$total / total_max) * 100
+```
+
+```{r}
+ggplot(data = Properties_room_sum, aes(x= VoterPrecentage,y  = total)) + geom_point()
+```
+
+
+```{r}
+Vacant_apartments
+```
+```{r}
+# filter purchuses by year and join with relevant elections csv
+Joined_Purch_Kneset20 <- Purcheuses %>%
+  filter(year < 2019) %>%
+  left_join(Kneset20_summed, by = c("city_lms_name" = "settlement.name"))
+
+Joined_Purch_Kneset21 <- Purcheuses %>%
+  filter(year == 2019) %>%
+  left_join(Kneset21_summed, by = c("city_lms_name" = "settlement.name"))
+
+Joined_Purch_Kneset22 <- Purcheuses %>%
+  filter(year == 2020) %>%
+  left_join(Kneset22_summed, by = c("city_lms_name" = "settlement.name"))
+
+Joined_Purch_Kneset23 <- Purcheuses %>%
+  filter(year == 2021) %>%
+  left_join(Kneset23_summed, by = c("city_lms_name" = "settlement.name"))
+
+Joined_Purch_Kneset24 <- Purcheuses %>%
+  filter(year == 2022) %>%
+  left_join(Kneset24_summed, by = c("city_lms_name" = "settlement.name"))
+
+Joined_Purch_Kneset25 <- Purcheuses %>%
+  filter(year > 2022) %>%
+  left_join(Kneset25_summed, by = c("city_lms_name" = "settlement.name"))
+
+# combining results
+Purchuses_Elections <- bind_rows(Joined_Purch_Kneset20, Joined_Purch_Kneset21, Joined_Purch_Kneset22, Joined_Purch_Kneset23, Joined_Purch_Kneset24, Joined_Purch_Kneset25)
+```
+
+
+```{r}
+Purchuses_Elections <- Purchuses_Elections %>% 
+  mutate(
+    max_col_name = case_when(
+      max_col_name == "Yahadut_Hator" ~ "Yahadut_Hatora",
+      max_col_name == "Hadash" ~ "Hadash_Raam",
+      max_col_name == "Kahul_lavan" ~ "Kahul_Lavan",
+      TRUE ~ max_col_name  # keep unchanged if no match
+    )
+  )
+
+Party_names <- unique(Purchuses_Elections$max_col_name)
+Coalition <- c("Halicud","Yahadut_Hatora")
+
+# Create a new coalition column with initial value 0
+coalition <- integer(nrow(Purchuses_Elections))
+
+# Bind the new column to Purchuses_Elections
+Purchuses_Elections <- bind_cols(Purchuses_Elections, coalition = coalition)
+
+# Mutate to increment coalition by 1 if max_col_name is in Coalition
+Purchuses_Elections <- Purchuses_Elections %>% 
+  mutate(
+    coalition = ifelse(max_col_name %in% Coalition, coalition + 1, coalition)
+  )
+
+coalition_subset <- Purchuses_Elections %>% 
+  filter(coalition == 1)
+
+opposition_subset <- Purchuses_Elections %>% 
+  filter(coalition == 0)
+
+coalition_subset_summary <- coalition_subset %>%
+  group_by(city_lms_name, year) %>%
+  summarise(total_apartments = sum(x3_rooms_apartments + x4_rooms_apartments)) %>% 
+  drop_na() %>% 
+    group_by(year) %>%  summarise(total = sum(total_apartments))
+
+opposition_subset_summary <- opposition_subset %>%
+  group_by(city_lms_name, year) %>%
+  summarise(total_apartments = sum(x3_rooms_apartments + x4_rooms_apartments)) %>% 
+  drop_na() %>% 
+  group_by(year) %>%  summarise(total = sum(total_apartments))
+
+
+ggplot(data = opposition_subset_summary, aes(x = year, y = total)) + 
+  geom_bar(stat = "identity")
+
+ggplot(data = coalition_subset_summary, aes(x = year, y = total)) + 
+  geom_bar(stat = "identity")
+
+Purchuses_Elections
+```
+
+
+```{r}
 
 ## Appendix
 
