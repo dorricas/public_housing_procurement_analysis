@@ -1,0 +1,312 @@
+---
+output: html_document
+date: "2024-06-22"
+---
+
+
+```{r load-packages, message=FALSE, include=FALSE}
+library(knitr)
+library(tidyverse)
+library(broom)
+library(htmltools)
+library(janitor)
+library(kableExtra)
+library(dplyr)
+
+library(MASS)
+library(randomForest)
+library(mgcv)
+```
+
+```{r setup, include = FALSE}
+opts_chunk$set(echo=FALSE) # hide source code in the document
+knitr::opts_chunk$set(fig.width=7, fig.height=3.5)
+```
+
+
+```{r echo=FALSE}
+Kneset_20 <- read.csv("../data/Translated/Kneset20_summed.csv")
+Kneset_21 <- read.csv("../data/Translated/Kneset21_summed.csv")
+Kneset_22 <- read.csv("../data/Translated/Kneset22_summed.csv")
+Kneset_23 <- read.csv("../data/Translated/Kneset23_summed.csv")
+Kneset_24 <- read.csv("../data/Translated/Kneset24_summed.csv")
+Kneset_25 <- read.csv("../data/Translated/Kneset25_summed.csv")
+
+Properties_rooms <- read.csv("../data/Translated/Properties_Rooms.csv")
+
+Purchuses <- read.csv("../data/Translated/Purchuses.csv")
+
+Vacant_apartments <- read.csv("../data/Translated/Vacant_Apartments.csv")
+
+Kneset_20
+Kneset_21
+Kneset_22
+Kneset_23
+Kneset_24
+Kneset_25
+
+Properties_rooms
+
+Purchuses
+
+Vacant_apartments
+```
+
+
+```{r}
+Purchuses <- Purchuses %>%
+  mutate(
+    x3_average_paid_in_Mil = (x3_rooms_apartments * average_price_nis_3_rooms_apartments) / 1000000,
+    x4_average_paid_in_Mil = (x4_rooms_apartments * average_price_nis_4_rooms_apartments) / 1000000
+  )
+
+Purchuses
+```
+
+```{r}
+TotalPropertyPerCity <- Properties_rooms %>%
+  dplyr::select(city_lms_name, three_rooms, four_rooms) %>%
+  group_by(city_lms_name) %>%
+  summarize(
+    total_three_rooms = sum(three_rooms, na.rm = TRUE),
+    total_four_rooms = sum(four_rooms, na.rm = TRUE)
+  )
+
+TotalPropertyPerCity
+```
+
+
+```{r}
+PurchusesPerCity <- Purchuses %>%
+  dplyr::select(city_lms_name,x3_rooms_apartments,x4_rooms_apartments) %>%
+  group_by(city_lms_name) %>%
+  summarise(
+    total_x3_purchused = sum(x3_rooms_apartments, na.rm = TRUE),
+    total_x4_purchused = sum(x4_rooms_apartments, na.rm = TRUE)
+  )
+
+PurchusesPerCity
+```
+
+
+```{r}
+# filter purchuses by year and join with relevant elections csv
+Joined_Purch_Kneset20 <- Purchuses %>%
+  filter(year < 2019) %>%
+  left_join(Kneset_20, by = c("city_lms_name" = "settlement.name"))
+
+Joined_Purch_Kneset21 <- Purchuses %>%
+  filter(year == 2019) %>%
+  left_join(Kneset_21, by = c("city_lms_name" = "settlement.name"))
+
+Joined_Purch_Kneset22 <- Purchuses %>%
+  filter(year == 2020) %>%
+  left_join(Kneset_22, by = c("city_lms_name" = "settlement.name"))
+
+Joined_Purch_Kneset23 <- Purchuses %>%
+  filter(year == 2021) %>%
+  left_join(Kneset_23, by = c("city_lms_name" = "settlement.name"))
+
+Joined_Purch_Kneset24 <- Purchuses %>%
+  filter(year == 2022) %>%
+  left_join(Kneset_24, by = c("city_lms_name" = "settlement.name"))
+
+Joined_Purch_Kneset25 <- Purchuses %>%
+  filter(year > 2022) %>%
+  left_join(Kneset_25, by = c("city_lms_name" = "settlement.name"))
+
+# combining results
+Purchuses_Elections <- bind_rows(Joined_Purch_Kneset20, Joined_Purch_Kneset21, Joined_Purch_Kneset22, Joined_Purch_Kneset23, Joined_Purch_Kneset24, Joined_Purch_Kneset25)
+
+```
+
+
+```{r}
+Purchuses_Elections <- Purchuses_Elections %>%
+  dplyr::select(city_lms_name, year, x3_rooms_apartments, x4_rooms_apartments, x3_average_paid_in_Mil, x4_average_paid_in_Mil, max_col_name, max_value, BZB, Voters, VoterPrecentage, Party.Precentage)
+```
+
+
+```{r}
+# Fix party name
+Purchuses_Elections <- Purchuses_Elections %>%
+  mutate(
+    max_col_name = case_when(
+    max_col_name == "Kahul_lavan" ~ "Kahul_Lavan",
+    max_col_name == "Yahadut_Hator" ~ "Yahadut_Hatora",
+    TRUE ~ max_col_name
+    )
+  )
+```
+
+
+```{r}
+# present a table to observe amount of purchased apartments grouped by city and top party elected
+Purchuses_Elections %>%
+  dplyr::select(city_lms_name,x3_rooms_apartments,x4_rooms_apartments, max_col_name) %>%
+  group_by(city_lms_name, max_col_name) %>%
+  summarise(
+    total_x3_purchased = sum(x3_rooms_apartments, na.rm = TRUE),
+    total_x4_purchased = sum(x4_rooms_apartments, na.rm = TRUE)
+  )
+```
+
+
+```{r}
+# factor party column
+Purchuses_Elections <- Purchuses_Elections %>%
+  mutate(max_col_name = as.factor(max_col_name))
+```
+
+
+```{r}
+# making dummy variables
+Purchased_Elections_Dummy <- Purchuses_Elections %>%
+  mutate(value = 1) %>%
+  pivot_wider(names_from = max_col_name, values_from = value, values_fill = list(value = 0))
+
+Purchased_Elections_Dummy
+```
+
+
+```{r}
+Purchased_Elections_For_Model <- Purchased_Elections_Dummy %>%
+  dplyr::select(city_lms_name, x3_rooms_apartments, x4_rooms_apartments, Party.Precentage, Halicud, Yahadut_Hatora, Kahul_Lavan, Hadash, Hadash_Raam, Yesh_atid)
+```
+
+
+```{r}
+# pearson correlation
+Purchased_Elections_Dummy %>%
+  dplyr::select(year, x3_rooms_apartments, x4_rooms_apartments, x3_average_paid_in_Mil, x4_average_paid_in_Mil, max_value, BZB, Voters, VoterPrecentage, Party.Precentage, Halicud, Yahadut_Hatora, Kahul_Lavan, Hadash, Hadash_Raam, Yesh_atid) %>%
+  cor()
+```
+
+
+
+
+### Models
+
+```{r}
+# linear regression models - x: party.precentage
+model_3_rooms <- lm(x3_rooms_apartments ~ Party.Precentage, data = Purchuses_Elections)
+summary(model_3_rooms)
+
+model_4_rooms <- lm(x4_rooms_apartments ~ Party.Precentage, data = Purchuses_Elections)
+summary(model_4_rooms)
+
+model_3_avg_paid <- lm(x3_average_paid_in_Mil ~ Party.Precentage, data = Purchuses_Elections)
+summary(model_3_avg_paid)
+
+model_4_avg_paid <- lm(x4_average_paid_in_Mil ~ Party.Precentage, data = Purchuses_Elections)
+summary(model_4_avg_paid)
+```
+
+These results suggest that Party.Precentage has a consistent negative impact on the variables of interest (x3_rooms_apartments, x4_rooms_apartments, x3_average_paid_in_Mil, x4_average_paid_in_Mil). As Party.Precentage increases, there is a corresponding decrease in these housing-related measures, indicating a potential relationship between political party percentage and housing market dynamics captured by these variables.
+
+
+```{r}
+# linear regression models - x: max_value + party percentage
+model_3_rooms <- lm(x3_rooms_apartments ~ max_value + Party.Precentage, data = Purchuses_Elections)
+summary(model_3_rooms)
+
+model_4_rooms <- lm(x4_rooms_apartments ~ max_value + Party.Precentage, data = Purchuses_Elections)
+summary(model_4_rooms)
+
+model_3_avg_paid <- lm(x3_average_paid_in_Mil ~ max_value + Party.Precentage, data = Purchuses_Elections)
+summary(model_3_avg_paid)
+
+model_4_avg_paid <- lm(x4_average_paid_in_Mil ~ max_value + Party.Precentage, data = Purchuses_Elections)
+summary(model_4_avg_paid)
+```
+
+These results suggest that both max_value and Party.Precentage are significant predictors in these linear regression models for predicting x3_rooms_apartments, x4_rooms_apartments, x3_average_paid_in_Mil, and x4_average_paid_in_Mil.
+
+
+```{r}
+# Poisson Regression models - x: party
+poisson_model_3_rooms <- glm(x3_rooms_apartments ~ max_col_name, data = Purchuses_Elections, family = poisson)
+summary(poisson_model_3_rooms)
+
+poisson_model_4_rooms <- glm(x4_rooms_apartments ~ max_col_name, data = Purchuses_Elections, family = poisson)
+summary(poisson_model_4_rooms)
+```
+
+Poisson regression is significant  
+For 3 rooms - Halicud and Yahadut_Hatora has coeff of 2.3041 and 1.7817, where Kahul_Lavan and Yesh_Atid has 2.1884 and 1.6185  
+For 4 rooms - Halicud and Yahadut_Hatora has coeff of 2.1843 and 2.2105, where Kahul_Lavan and Yesh_Atid has 1.45 and 1.6452
+
+
+```{r}
+# Poisson Regression models - x: party + Party percentage
+poisson_model_3_rooms <- glm(x3_rooms_apartments ~ max_col_name + Party.Precentage, data = Purchuses_Elections, family = poisson)
+summary(poisson_model_3_rooms)
+
+poisson_model_4_rooms <- glm(x4_rooms_apartments ~ max_col_name + Party.Precentage, data = Purchuses_Elections, family = poisson)
+summary(poisson_model_4_rooms)
+```
+
+Both Poisson regression models show that max_col_name and Party.Precentage are significant predictors of x3_rooms_apartments and x4_rooms_apartments. The models provide insights into how different political party percentages (Party.Precentage) and categories (max_col_name) influence the counts of apartments in different configurations (x3_rooms_apartments and x4_rooms_apartments). The significance of these predictors underscores their importance in understanding the variability in apartment counts based on political and structural factors.
+
+
+```{r}
+# Poisson Regression models - x: Party percentage + max_value
+poisson_model_3_rooms <- glm(x3_rooms_apartments ~ Party.Precentage + max_value, data = Purchuses_Elections, family = poisson)
+summary(poisson_model_3_rooms)
+
+poisson_model_4_rooms <- glm(x4_rooms_apartments ~ Party.Precentage + max_value, data = Purchuses_Elections, family = poisson)
+summary(poisson_model_4_rooms)
+```
+
+In summary, these results provide strong evidence that Party.Precentage and max_value are important predictors for explaining the variability in x3_rooms_apartments and x4_rooms_apartments.
+
+
+```{r}
+# Poisson Regression models - x: party + Party percentage + max_value
+poisson_model_3_rooms <- glm(x3_rooms_apartments ~ max_col_name + Party.Precentage + max_value, data = Purchuses_Elections, family = poisson)
+summary(poisson_model_3_rooms)
+
+poisson_model_4_rooms <- glm(x4_rooms_apartments ~ max_col_name + Party.Precentage + max_value, data = Purchuses_Elections, family = poisson)
+summary(poisson_model_4_rooms)
+```
+
+Though this model is "better" the last 3 models in AIC, most parties contributions is not significant (except Halicud).
+
+
+```{r}
+# linear regression models - x: Parties
+model_3_rooms <- lm(x3_rooms_apartments ~ Halicud + Yahadut_Hatora + Kahul_Lavan + Hadash + Hadash_Raam + Yesh_atid, data = Purchased_Elections_Dummy)
+summary(model_3_rooms)
+
+model_4_rooms <- lm(x4_rooms_apartments ~ Halicud + Yahadut_Hatora + Kahul_Lavan + Hadash + Hadash_Raam + Yesh_atid, data = Purchased_Elections_Dummy)
+summary(model_4_rooms)
+
+model_3_avg_paid <- lm(x3_average_paid_in_Mil ~ Halicud + Yahadut_Hatora + Kahul_Lavan + Hadash + Hadash_Raam + Yesh_atid, data = Purchased_Elections_Dummy)
+summary(model_3_avg_paid)
+
+model_4_avg_paid <- lm(x4_average_paid_in_Mil ~ Halicud + Yahadut_Hatora + Kahul_Lavan + Hadash + Hadash_Raam + Yesh_atid, data = Purchased_Elections_Dummy)
+summary(model_4_avg_paid)
+```
+
+
+```{r}
+# Poisson Regression models - x: Parties
+poisson_model_3_rooms <- glm(x3_rooms_apartments ~ Halicud + Yahadut_Hatora + Kahul_Lavan + Hadash + Hadash_Raam + Yesh_atid, data = Purchased_Elections_For_Model, family = poisson)
+summary(poisson_model_3_rooms)
+
+poisson_model_4_rooms <- glm(x4_rooms_apartments ~ Halicud + Yahadut_Hatora + Kahul_Lavan + Hadash + Hadash_Raam + Yesh_atid, data = Purchased_Elections_For_Model, family = poisson)
+summary(poisson_model_4_rooms)
+```
+
+
+```{r}
+# Poisson Regression models - x: Parties + party percentage
+poisson_model_3_rooms <- glm(x3_rooms_apartments ~ Halicud + Yahadut_Hatora + Kahul_Lavan + Hadash + Hadash_Raam + Yesh_atid + Party.Precentage, data = Purchased_Elections_For_Model, family = poisson)
+summary(poisson_model_3_rooms)
+
+poisson_model_4_rooms <- glm(x4_rooms_apartments ~ Halicud + Yahadut_Hatora + Kahul_Lavan + Hadash + Hadash_Raam + Yesh_atid + Party.Precentage, data = Purchased_Elections_For_Model, family = poisson)
+summary(poisson_model_4_rooms)
+```
+
+# interpertation of poisson coeff is as follows: (exp(coeff)-1)*100
+
