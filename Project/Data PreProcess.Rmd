@@ -502,7 +502,10 @@ new_elections_sum$Party.Precentage <- new_elections_sum$max_value/new_elections_
 new_elections_sum
 Kneset25_summed <- new_elections_sum
 ```
+
 ```{r}
+Kneset20 <- read.csv("../data/Translated/kneset20.csv")
+
 Kneset21 <- read.csv("../data/Translated/kneset21.csv")
 
 Kneset22 <- read.csv("../data/Translated/kneset22.csv")
@@ -513,10 +516,122 @@ Kneset24 <- read.csv("../data/Translated/Kneset24.csv")
 ```
 
 ```{r}
+Kneset20
 Kneset21
 Kneset22
 Kneset23
 Kneset24
+```
+```{r}
+# Renaming the Hebrew variables:
+Kneset20 <- Kneset20 %>% 
+  rename(
+    Mahane_Zioni = "אמת",
+    Yahadut_Hatora = "ג",
+    Reshima_meshutefet = "ודעם",
+    Hacalcala = "ז",
+    Halicud = "מחל",
+    Yesh_atid = "פה",
+    Kulanu = "כ",
+    Habait_Hayehudi = "טב",
+    Israel_beitenu = "ל",
+    Merets = "מרצ",
+    Yahad = "קץ",
+    Ale_Yarok = "קנ",
+    Reshima_aravit = "ע",
+    Hayerukim = "רק",
+    NaNach = "ףץ",
+    Bizchutan = "נז",
+    Tikva_leshinui = "יץ",
+    Piratim = "ף",
+    Perach = "נץ",
+    Nivheret_Haam = "זץ",
+    Haor = "ני",
+    Schirut_bekavod = "י",
+    Calcala = "ז",
+    Democratura = "זך",
+    Manhigut_hevratit = "יז",
+    Shas = "שס",
+  )
+
+# mutate the names of the cities that are in other datasets.
+Kneset20 <- Kneset20 %>% 
+  mutate(
+    settlement.name = case_when(
+    settlement.name =="horizons" ~ "Ofakim",
+    settlement.name =="The view of the Galilee" ~ "Nof Hagalil",
+    settlement.name == "my peace" ~  "Shlomi" ,
+    settlement.name == "routes" ~ "Netivot",
+    settlement.name == "horizons" ~ "Ofakim",
+    settlement.name == "The view of the Galilee" ~ "Nof Hagalil",
+    settlement.name == "my peace" ~  "Shlomi" ,
+    settlement.name == "routes" ~ "Netivot",
+    settlement.name == "streets" ~ "Rehovot",
+    settlement.name == "Area" ~ "Azur",
+    settlement.name == "רחובות" ~ "Rehovot",
+    settlement.name == "fresh" ~ "Raanana",
+    settlement.name == "sons of Aish" ~ "Bnei Aish",
+    settlement.name == "a horse" ~ "Susya",
+    settlement.name == "scythe" ~ "Hermesh",
+    settlement.name == "pestle" ~ "Eli",
+    settlement.name == "ridges" ~ "Rekhasim",
+    settlement.name == "crimson" ~ "Argaman",
+    settlement.name == "earing" ~ "Harish",
+    settlement.name == "anemone" ~ "Kalanit",
+    settlement.name == "I will tell" ~ "Metzad",
+    settlement.name == "crop" ~ "Yevul",
+    settlement.name == "stake" ~ "Yated",
+    settlement.name == "Come on, Zoran" ~ "Kadima-Zoran",
+    settlement.name == "a fence" ~ "Gedera",
+    settlement.name == "measles" ~ "Hatzeva",
+    settlement.name == "Furia-Neva is working" ~ "Poria–Neve Oved",
+    settlement.name == "Ptolemy Yosef" ~ "Talmei Yosef",
+    settlement.name == "Solid stones" ~ "Avnei Eitan",
+    settlement.name == "horn" ~ "Tzofar",
+    settlement.name == "Horns of Samaria" ~ "Karnei Shomron",
+    settlement.name == "sapphire" ~ "Sapir",
+    settlement.name == "dawn" ~ "Tzohar",
+    settlement.name == "truffle" ~ "Kmehin",
+    settlement.name == "Chinese radish" ~ "Kadesh Barnea",
+    settlement.name == "towers" ~ "Migdalim",
+    settlement.name == "harvesting" ~ "Katzir",
+    settlement.name == "emerald" ~ "Bareket",
+    settlement.name == "A souvenir of her house" ~ "Mazkeret Batya",
+    settlement.name == "darling" ~ "Yakir",
+    settlement.name == "tower" ~ "Migdal",
+    settlement.name == "Ancients" ~ "Kedumim",
+    settlement.name == "face friend" ~ "Ma'ale Hever",
+    settlement.name == "on" ~ "Sha'al",
+    settlement.name == "Gold leaves" ~ "Alei Zahav",
+    settlement.name == "better" ~ "Yitav",
+    settlement.name == "Bethel" ~ "Beit El",
+    settlement.name == "Sheila" ~ "Shilo",
+    settlement.name == "Gems" ~ "Avnei Hefetz",
+    settlement.name == "Tarshiha" ~ "Ma'alot-Tarshiha",
+    settlement.name == "diligent" ~ "Harutzim",
+    settlement.name == "Roy" ~ "Ro'i",
+    settlement.name == "flint" ~ "Halamish",
+    settlement.name == "roots" ~ "Shorashim",
+    settlement.name == "Absalom" ~ "Avshalom",
+    settlement.name == "Dotan's introduction" ~ "Mevo Dotan",
+    settlement.name == "The Galilee" ~ "Gornot HaGalil",
+    settlement.name == "Shafram" ~ "Shfar'am",
+    settlement.name == "torches" ~ "Lapidot",
+    settlement.name == "Apple village" ~ "Kfar Tapuach",
+    settlement.name == "its openings" ~ "Petahya",
+    settlement.name == "grape" ~ "Einav",
+    settlement.name == "Dubb" ~ "Dovev",
+    settlement.name == "antimony" ~ "Kahal",
+    settlement.name == "Yavnal" ~ "Yavne'el",
+    settlement.name == "hardware" ~ "Hamra",
+    settlement.name == "garden fruit" ~ "Pri Gan",
+    settlement.name == "Almond" ~ "Shaked",
+    settlement.name == "Head turned" ~ "Rosh Pinna",
+    settlement.name == "Frankincense" ~ "Ma'ale Levona",
+    settlement.name == "Abraham's demons" ~ "Sdei Avraham",
+    TRUE ~ settlement.name  # Keeps other values unchanged
+    )
+  )
 ```
 
 ```{r}
@@ -1008,6 +1123,59 @@ Kneset24 <- Kneset24 %>%
 
 
 ```{r}
+Kneset20 <- Kneset20[-1,]
+Kneset20 <- Kneset20 %>% select(-X_id)
+Kneset20
+```
+
+
+```{r}
+Kneset20_dup <- Kneset20
+citynames_and_id <- Kneset20 %>% distinct(settlement.ID,settlement.name)
+cols_to_sum <- names(Kneset20)[7:ncol(Kneset21)]
+
+
+Kneset20_chopped <- Kneset20_dup[, 7:ncol(Kneset20_dup)]
+
+
+set.seed(123)
+# Function to get column name of max value in each row
+max_col_names <- apply(chopped_elections_sum, 1, function(row) {
+  colnames(chopped_elections_sum)[which.max(row)]
+})
+
+chopped_elections_sum$max_value <- apply(chopped_elections_sum, 1, max)
+
+# Add the result as a new column to the original data frame
+chopped_elections_sum$max_col_name <- max_col_names
+
+find_max_value <- function(row) {
+  if (any(is.na(row))) {
+    NA  # Return NA if there are any NA values in the row
+  } else {
+    max(row)
+  }
+}
+
+chopped_elections_sum$max_value <- apply(chopped_elections_sum, 1, function(row) max(as.numeric(row), na.rm = TRUE))
+
+new_elections_sum <- chopped_elections_sum[,(ncol(chopped_elections_sum)-2):ncol(chopped_elections_sum)]
+
+new_elections_sum <- left_join(new_elections_sum, citynames_and_id, by = "settlement.name")
+new_elections_sum <- new_elections_sum[,c(4,1,3,2)]
+hepler_df <- settlement_sums[,c(1,2,3)]
+
+new_elections_sum <- left_join(new_elections_sum, hepler_df, by = "settlement.ID")
+new_elections_sum$VoterPrecentage <- new_elections_sum$Voters/new_elections_sum$BZB
+new_elections_sum$Party.Precentage <- new_elections_sum$max_value/new_elections_sum$Voters
+Kneset20_summed <- new_elections_sum
+
+Kneset20_summed
+
+```
+
+
+```{r}
 # Group the dataframe by 'settlement.ID'
 Kneset21_grouped <- Kneset21 %>% group_by(settlement.ID)
 
@@ -1021,6 +1189,8 @@ settlement_sums <- Kneset21_grouped %>%
 citynames_and_id <- Kneset21 %>% distinct(settlement.ID,settlement.name)
 
 settlement_sums <- left_join(settlement_sums, citynames_and_id, by = "settlement.ID")
+
+settlement_sums
 
 chopped_elections_sum <- settlement_sums[, 6:ncol(settlement_sums)]
 
@@ -1223,14 +1393,15 @@ Kneset24_summed <- new_elections_sum
 Kneset24_summed
 ```
 ```{r}
-# write.csv(Kneset21_summed, "../data/Translated/Kneset21_summed.csv")
-# write.csv(Kneset22_summed, "../data/Translated/Kneset22_summed.csv")
-# write.csv(Kneset23_summed, "../data/Translated/Kneset23_summed.csv")
-# write.csv(Kneset24_summed, "../data/Translated/Kneset24_summed.csv")
-# write.csv(Kneset25_summed, "../data/Translated/Kneset25_summed.csv")
-# write.csv(Properties_rooms, "../data/Translated/Properties_Rooms.csv")
-# write.csv(Purcheuses, "../data/Translated/Purchuses.csv")
-# write.csv(Vacant_apartments, "../data/Translated/Vacant_Apartments")
+write.csv(Kneset21_summed, "../data/Translated/Kneset20_summed.csv")
+write.csv(Kneset21_summed, "../data/Translated/Kneset21_summed.csv")
+write.csv(Kneset22_summed, "../data/Translated/Kneset22_summed.csv")
+write.csv(Kneset23_summed, "../data/Translated/Kneset23_summed.csv")
+write.csv(Kneset24_summed, "../data/Translated/Kneset24_summed.csv")
+write.csv(Kneset25_summed, "../data/Translated/Kneset25_summed.csv")
+write.csv(Properties_rooms, "../data/Translated/Properties_Rooms.csv")
+write.csv(Purcheuses, "../data/Translated/Purchuses.csv")
+write.csv(Vacant_apartments, "../data/Translated/Vacant_Apartments")
 ```
 
 ## Appendix
