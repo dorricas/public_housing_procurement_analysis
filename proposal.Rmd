@@ -1,0 +1,244 @@
+---
+title: "Project proposal"
+author: "Team number 4"
+mainfont: Roboto
+fontsize: 10pt
+output:
+  pdf_document:
+    includes:
+      in_header: header.tex
+# output: html_document
+---
+
+
+```{r load-packages, message=FALSE, include=FALSE}
+library(knitr)
+library(tidyverse)
+library(broom)
+library(htmltools)
+library(janitor)
+library(kableExtra)
+```
+
+```{r setup, include = FALSE}
+opts_chunk$set(echo=FALSE) # hide source code in the document
+knitr::opts_chunk$set(fig.width=7, fig.height=3.5)
+```
+
+
+```{r include=TRUE}
+Election_results25 <- read.csv(file.path("data", "Translated", "Kneset25_summed.csv"))
+
+Election_results23 <- read.csv(file.path("data", "Translated", "Kneset23_summed.csv"))
+
+Properties_rooms <- read.csv(file.path("data", "Translated", "Properties_Rooms.csv"))
+
+Purcheuses <- read.csv(file.path("data", "Translated", "Purchuses.csv"))
+
+Vacant_apartments <- read.csv(file.path("data", "Translated", "Vacant_Apartments.csv"))
+
+Election_results25
+
+Properties_rooms
+
+Purcheuses
+
+Vacant_apartments
+```
+
+```{r include=FALSE, paged.print=TRUE}
+summary(Vacant_apartments)
+summary(Properties_rooms)
+summary(Purcheuses)
+```
+
+```{r echo=FALSE}
+
+Vacant_apartments_in_cities <- Vacant_apartments %>%
+  group_by(city_lms_name) %>%
+  summarise(vac_app = n())
+
+kneset25_vacant <- inner_join(Election_results25,
+                              Vacant_apartments_in_cities,
+                              by = c("settlement.name" = "city_lms_name"))
+
+vac_app_by_party <- kneset25_vacant %>%
+  group_by(max_col_name) %>%
+  summarise(total_vac_app = sum(vac_app))
+
+vac_app_by_party
+
+```
+```{r echo=FALSE}
+
+Properties_rooms <- Properties_rooms %>%
+  mutate(appartments = no_rooms + one_rooms + two_rooms +
+           three_rooms + four_rooms + five_rooms +
+           six_rooms + seven_rooms + eight_rooms +
+           nine_rooms + ten_rooms + more_rooms)
+
+Properties_in_cities = Properties_rooms %>%
+  group_by(city_lms_name) %>%
+  summarise(total_appartments = sum(appartments))
+
+kneset23_appartments <- inner_join(Election_results23,
+                              Properties_in_cities,
+                              by = c("settlement.name" = "city_lms_name"))
+
+app_by_party <- kneset23_appartments %>%
+  group_by(max_col_name) %>%
+  summarise(total_app = sum(total_appartments))
+
+app_by_party
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+```{r include=FALSE}
+Properties_rooms
+columns_subset <- Properties_rooms[, 3:ncol(Properties_rooms)]
+sum_by_room <- colSums(columns_subset)
+total_sum <- sum(sum_by_room)
+column_percentages <- (sum_by_room / total_sum) * 100
+column_percentages
+sum_by_room
+```
+
+## 3. Preliminary results 
+ 
+Property purchases: 
+The **mean cost** of a 3 rooms apartment is 1,405,986 NIS, and the mean cost of a 4 rooms apartments is 1,671,485 NIS.  
+Vacant apartments:  
+There are **5 companies** that own available apartments, Amidar with 233 apartments, Amigur with 34, Co. Ltd with 8 and flint and shakmona with 1 each. 
+Most of the apartment inventory consists of **2, 3 or 4 rooms** apartments, with a distribution of 29.3%, 48.6% and 15% accordingly.  
+
+
+```{r echo=FALSE}
+Vacant_apartments_count <- Vacant_apartments %>% group_by(city_lms_name) %>%  mutate(count = n())
+
+
+custom_colors <- c("1" = "#4281A4", "1.5" = "#9CAFB7", "2" = "#EAD2AC", "2.5" = "#E6B89C", "3" = "#FE938C", "3.5" = "#DC3F34", "4" = "#870E06", "5" = "#3E3E3B")
+
+ggplot(data = Vacant_apartments_count,
+       mapping = aes( x= reorder(city_lms_name ,-count), fill = factor (num_of_rooms))) +
+  geom_bar() + #fill='steelblue'
+  scale_fill_manual(values = custom_colors) +
+  theme(axis.text.x=element_text(angle = -90, hjust = 0)) +
+  labs(x = "City", y = "Aartments", title = "Number of available apartments by city",fill = "Number of rooms",subtitle = "collected in May 24")
+```
+```{r echo=FALSE}
+
+custom_colors <- c("2017" = "#4281A4", "2018" = "#9CAFB7", "2019" = "#EAD2AC", "2020" = "#E6B89C", "2021" = "#FE938C", "2022" = "#DC3F34", "2023" = "#870E06", "2024" = "#3E3E3B")
+
+ggplot(data = Purcheuses,
+       mapping = aes( x= city_lms_name, fill = factor(year))) +
+  geom_bar() +
+  scale_fill_manual(values = custom_colors) +
+  theme(axis.text.x=element_text(angle = -90, hjust = 0))+
+  labs(x = "City", y = "Apartments bought", title = "Apartments bought each year by City", fill = "Year", subtitle = "From 2017 to 2024")
+```
+
+```{r echo=FALSE}
+Properties_room_sum <- Properties_rooms %>% 
+  group_by(city_lms_name) %>% 
+  summarise(total = sum(one_rooms + two_rooms + three_rooms + four_rooms + five_rooms + six_rooms + seven_rooms +  eight_rooms + nine_rooms + ten_rooms + more_rooms, na.rm = TRUE))
+
+Properties_room_sum_filtered <- Properties_room_sum %>%
+  filter(total > 300)
+
+Properties_room_sum_filtered2 <- Properties_room_sum %>%
+  filter(total < 100)
+
+
+# Create the bar plot with color gradient fill
+ggplot(data = Properties_room_sum_filtered, mapping = aes(x = reorder(city_lms_name, -total), y = total, fill = total)) +
+  geom_col(width = 0.7, position = position_dodge(width = 0.9)) +
+  scale_fill_gradient(low = "grey", high = "red") +
+  theme(axis.text.x = element_text(angle = -90, hjust = 0, vjust = 0.5, margin = margin(t = 10))) +
+  labs(x = "City name", y = "Total apartments", title = "Total apartments by City", subtitle = "Where there are more than 300 apartments in the city") +
+  theme(plot.margin = margin(10, 10, 10, 10),
+        axis.line = element_line(colour = "darkgrey")) +
+  scale_x_discrete(expand = expansion(mult = c(-1, -1)))
+
+```
+
+
+Looking at the data visualization and some summary statistics we can see that there are some concentrations for the current public housing system, where a major portion of the apartments are 2 and 3 rooms which may not help those who need them. Furthermore there is 1 company owning most of the apartments and a lot of the apartments are located in southern Israel in cities such as Be'er Sheva or Dimona.  
+The elections results dataset is used mainly to determain the most voted party in a city, thus we didn't include any explanatory statistics about it.   
+
+## 4. Data analysis plan
+#### 1. Outcome (Response, Y) and Predictor (Explanatory, X) Variables
+
+a. First Relation to examine : Outcome (Y): The number of houses bought per city per year. Explanatory (X): Segmentation of voting percentages in that city.
+b. Second Relation to examine : Outcome (Y): The number of houses bought in a certain city in relation to the percentage of apartments available out of the total number of existing apartments in the city. Explanatory (X): Segmentation of voting percentages in that city.
+
+#### 2.  Comparison Groups  
+
+  * Temporal Comparison: Different years where election results were different.
+  * Spatial Comparison: Different cities in the same year with varying voting patterns.
+
+#### 3. Methods to Answer the Question  
+
+* **Data Preprocessing:** Ensuring all data is uniform, Predicting or imputing null values to complete the dataset. Removing duplicates, correcting errors, and ensuring consistency. Creating new variables or modifying existing ones to better fit the analysis
+* **Descriptive Analysis:** Describe the current public housing procurement policy, its components, and influencing factors. make variable overview: Detail the apartment inventory, political state of the city, and other relevant variables.
+* **Statistical Analysis:**
+  + Logistic Regression: To model the probability of a certain number of houses being bought based on voting percentages. 
+  + Linear Regression: To measure the linear relationship between the number of houses bought and the voting percentages.
+  + Comparative Analysis: Using t-tests or ANOVA to compare housing procurement policies across different cities and years based on their voting patterns.
+  + Correlation Analysis: To check the strength and direction of the relationship between voting patterns and housing purchases.
+
+
+#### 4. Necessary Results to Support the Hypothesis  
+
+a. Comparison Analysis: Identify and quantify differences in public housing procurement policies by comparing cities with different political leanings.
+b. Inventory Analysis: Measure the percentage of vacant apartments and correlate this with housing purchases.
+
+
+#### 5. Teamwork and Division of Work  
+
+* Dori: Data Collection and Preprocessing - Gather and clean data, handle translations, manage missing values.
+* Daniel: Descriptive and Exploratory Analysis - Conduct descriptive analysis, visualize data, and provide initial insights.
+* Ofek: Statistical Analysis - Perform logistic, linear, and non-linear regression analyses, comparative and correlation analyses.
+* Shahaf: Reporting and Presentation - Consolidate findings, prepare the final report, and create visual presentations for clarity and communication of results.  
+
+To assure all team members experience every part of the data science, each task completed will be reviewed and confirmed by all team members before granting "Finished" status and merging to the project's Master branch.  
+In addition, we present a general division of work, which will change dynamically through the project's progress according to the team's demands and needs.
+
+
+#### Collaboration and Communication:
+
+Tedious work will happen offline where each person will work at home. We will share a **Git repository** to keep the R code updated. **Bi-weekly Zoom meetings** will be held to go over the tasks needed to be done, ensuring everyone is on track and any issues can be addressed promptly. This regular communication is essential, especially considering Daniel's Miloim (reserve duty) commitments. During these meetings, we will review progress, plan next steps, and ensure alignment among all team members. By maintaining clear and consistent communication, we aim to work efficiently and effectively, despite being in different locations.
+
+
+
+## Appendix
+
+### Data README
+
+```{r include_data_readme, comment=''}
+cat(readLines('../data/README.md'), sep = '\n')
+```
+
+
