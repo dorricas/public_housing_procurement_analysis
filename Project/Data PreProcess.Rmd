@@ -3,7 +3,6 @@ output: html_document
 date: "2024-06-21"
 ---
 
-
 ```{r load-packages, message=FALSE, include=FALSE}
 library(knitr)
 library(tidyverse)
@@ -17,7 +16,6 @@ library(kableExtra)
 opts_chunk$set(echo=FALSE) # hide source code in the document
 knitr::opts_chunk$set(fig.width=7, fig.height=3.5)
 ```
-
 
 ```{r echo=FALSE}
 Election_results <- read.csv("../data/Translated/elect_results_t.csv")
@@ -432,7 +430,6 @@ Purcheuses
 Properties_rooms
 ```
 
-
 ```{r}
 Properties_rooms <- drop_na(Properties_rooms) # 4 apartments who add no floor data was removed
 # replacing NA's with 0's when there where no apartment purchased.
@@ -522,6 +519,7 @@ Kneset22
 Kneset23
 Kneset24
 ```
+
 ```{r}
 # Renaming the Hebrew variables:
 Kneset20 <- Kneset20 %>% 
@@ -996,7 +994,6 @@ Kneset23 <- Kneset23 %>%
   )
 ```
 
-
 ```{r}
 # Renaming the Hebrew variables:
 Kneset24 <- Kneset24 %>% 
@@ -1121,13 +1118,11 @@ Kneset24 <- Kneset24 %>%
   )
 ```
 
-
 ```{r}
 Kneset20 <- Kneset20[-1,]
 Kneset20 <- Kneset20 %>% select(-X_id)
 Kneset20
 ```
-
 
 ```{r}
 Kneset20_dup <- Kneset20
@@ -1405,7 +1400,6 @@ Kneset24_summed
 # write.csv(Vacant_apartments, "../data/Translated/Vacant_Apartments")
 ```
 
-
 ```{r}
 SocioEco <- read.csv("../data/Translated/SocioEconomic 2017 2019.csv")
 LamasNames <- read.csv("../data/Translated/LamasNamesCodes.csv")
@@ -1517,7 +1511,7 @@ filtered_data <- Kneset21_summed_joined %>%
   summarise(count = n()) %>%
   ungroup() %>%
   group_by(max_col_name) %>%
-  filter(sum(count) > 16)
+  filter(sum(count) > 0)
 
 # Create the bar plot
 ggplot(filtered_data, aes(x = CLUSTER.2019, y = count)) +
@@ -1530,11 +1524,9 @@ ggplot(filtered_data, aes(x = CLUSTER.2019, y = count)) +
 
 ```
 
-
 ```{r}
 Properties_rooms <- left_join(Properties_rooms,LamasNames, by = c("city_lms_name" = "lamas.name"))
 ```
-
 
 ```{r}
 # Purcheuses
@@ -1557,10 +1549,10 @@ Properties_room_sum$total.precentage <- (Properties_room_sum$total / total_max) 
 ggplot(data = Properties_room_sum, aes(x= VoterPrecentage,y  = total)) + geom_point()
 ```
 
-
 ```{r}
 Vacant_apartments
 ```
+
 ```{r}
 # filter purchuses by year and join with relevant elections csv
 Joined_Purch_Kneset20 <- Purcheuses %>%
@@ -1590,7 +1582,6 @@ Joined_Purch_Kneset25 <- Purcheuses %>%
 # combining results
 Purchuses_Elections <- bind_rows(Joined_Purch_Kneset20, Joined_Purch_Kneset21, Joined_Purch_Kneset22, Joined_Purch_Kneset23, Joined_Purch_Kneset24, Joined_Purch_Kneset25)
 ```
-
 
 ```{r}
 Purchuses_Elections <- Purchuses_Elections %>% 
@@ -1646,8 +1637,6 @@ ggplot(data = coalition_subset_summary, aes(x = year, y = total)) +
 Purchuses_Elections
 ```
 
-
-```{r}
 
 ## Appendix
 
