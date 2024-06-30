@@ -1,0 +1,424 @@
+---
+title: "Project proposal"
+author: "Team number 4"
+mainfont: Roboto
+fontsize: 10pt
+output:
+  pdf_document:
+    includes:
+      in_header: header.tex
+# output: html_document
+---
+
+
+```{r load-packages, message=FALSE, include=FALSE}
+library(knitr)
+library(tidyverse)
+library(broom)
+library(htmltools)
+library(janitor)
+library(kableExtra)
+```
+
+```{r setup, include = FALSE}
+opts_chunk$set(echo=FALSE) # hide source code in the document
+knitr::opts_chunk$set(fig.width=7, fig.height=3.5)
+
+getwd()
+```
+
+
+```{r include=TRUE}
+Election_results25 <- read.csv(file.path("..", "data", "Translated", "Kneset25_summed.csv"))
+
+Election_results23 <- read.csv(file.path("..", "data", "Translated", "Kneset23_summed.csv"))
+
+Properties_rooms <- read.csv(file.path("..", "data", "Translated", "Properties_Rooms.csv"))
+
+Purcheuses <- read.csv(file.path("..", "data", "Translated", "Purchuses.csv"))
+
+Vacant_apartments <- read.csv(file.path("..", "data", "Translated", "Vacant_Apartments.csv"))
+
+Election_results25
+
+Properties_rooms
+
+Purcheuses
+
+Vacant_apartments
+
+```
+
+```{r include=FALSE, paged.print=TRUE}
+summary(Vacant_apartments)
+summary(Properties_rooms)
+summary(Purcheuses)
+```
+
+```{r echo=FALSE}  
+
+Vacant_apartments_in_cities <- Vacant_apartments %>%
+  group_by(city_lms_name) %>%
+  summarise(vac_app = n())
+
+kneset25_vacant <- inner_join(Election_results25,
+                              Vacant_apartments_in_cities,
+                              by = c("settlement.name" = "city_lms_name"))
+
+vac_app_by_party <- kneset25_vacant %>%
+  group_by(max_col_name) %>%
+  summarise(total_vac_app = sum(vac_app))
+
+vac_app_by_party
+
+```
+```{r echo=FALSE}
+
+Properties_rooms <- Properties_rooms %>%
+  mutate(appartments = no_rooms + one_rooms + two_rooms +
+           three_rooms + four_rooms + five_rooms +
+           six_rooms + seven_rooms + eight_rooms +
+           nine_rooms + ten_rooms + more_rooms)
+
+Properties_in_cities = Properties_rooms %>%
+  group_by(city_lms_name) %>%
+  summarise(amount_of_appartments = sum(appartments))
+
+kneset23_appartments <- inner_join(Election_results23,
+                              Properties_in_cities,
+                              by = c("settlement.name" = "city_lms_name"))
+
+app_by_party <- kneset23_appartments %>%
+  group_by(max_col_name) %>%
+  summarise(total_app = sum(amount_of_appartments))
+
+app_by_party
+
+```
+```{r echo=FALSE}
+
+elect_results <- read.csv(file.path("..", "data", "Translated", "elect_results_t.csv"))
+
+elect_results <- elect_results %>% 
+  rename(
+    Avoda = "אמת",
+    Hofesh_Calcali = "אצ",
+    Habait_Hayhudi = "ב",
+    Yahadut_Hatora = "ג",
+    Balad = "ד",
+    Hadash_Taal = "ום",
+    Shahar_Koach = "ז",
+    Kama = "זך",
+    Koach_Lehaspia = "זנ",
+    Tsomet = "זץ",
+    Tsionot_Datit = "ט",
+    Israel_Hofshit = "י",
+    Hacalalit = "יז",
+    Ihud_Benei_Brit = "ינ",
+    Tsav_Hashaa = "יץ",
+    Gush_Tanachi = "יק",
+    Machane_Mamalachti = "כן",
+    Ani_VeAta = "ך",
+    Israel_Beitenu = "ל",
+    Halicud = "מחל",
+    Merets = "מרצ",
+    Kvod_Haadam = "נז",
+    Nativ = "ני",
+    Shema = "נף",
+    Atsmaiem = "נץ",
+    Yesh_kivun = "נק",
+    Anachnu = "נר",
+    Raam = "עם",
+    Yesh_atid = "פה",
+    Piratim = "ף",
+    Tseirim_boarim = "צ",
+    Manhigut_Hevratit = "ץ",
+    Kol_Hasviva = "ק",
+    Halev_hayehudi = "קי",
+    Seder_hadash = "קך",
+    Kol_koveaa = "קנ",
+    Beomets = "קץ",
+    Reshimat_34 = "רז",
+    Shas = "שס",
+    Ale_yarok = "ת"
+  )
+
+elect_results <- elect_results %>%
+  group_by(settlement_name) %>%
+  summarise(Voters = sum(Voters),
+            Accepted = sum(Accepted),
+            Halicud = sum(Halicud),
+            Yesh_atid = sum(Yesh_atid),
+            Machane_Mamalachti = sum(Machane_Mamalachti),
+            Yahadut_Hatora = sum(Yahadut_Hatora),
+            Tsionot_Datit = sum(Tsionot_Datit),
+            Shas = sum(Shas),
+            Israel_Beitenu = sum(Israel_Beitenu),
+            Hadash_Taal = sum(Hadash_Taal),
+            Raam = sum(Raam),
+            Avoda = sum(Avoda))
+
+elect_results
+
+```
+
+
+
+```{r echo=FALSE}
+
+
+elect_results_psg <- data.frame(
+  settlement = elect_results$settlement_name,
+  Halicud = elect_results$Halicud / elect_results$Accepted,
+  Yesh_atid = elect_results$Yesh_atid / elect_results$Accepted,
+  Machane_Mamalachti = elect_results$Machane_Mamalachti / elect_results$Accepted,
+  Yahadut_Hatora = elect_results$Yahadut_Hatora / elect_results$Accepted,
+  Tsionot_Datit = elect_results$Tsionot_Datit / elect_results$Accepted,
+  Shas = elect_results$Shas / elect_results$Accepted,
+  Israel_Beitenu = elect_results$Israel_Beitenu / elect_results$Accepted,
+  Hadash_Taal = elect_results$Hadash_Taal / elect_results$Accepted,
+  Raam = elect_results$Raam / elect_results$Accepted,
+  Avoda = elect_results$Avoda / elect_results$Accepted
+  )
+
+vote_psg_and_Properties_in_cities <- inner_join(Properties_in_cities, elect_results_psg,
+                                               by = c("city_lms_name" = "settlement"))
+
+vote_psg_and_Properties_in_cities
+
+```
+
+```{r echo=FALSE}
+ggplot(vote_psg_and_Properties_in_cities, aes(x = Halicud, y = amount_of_appartments)) +
+  geom_point() +
+  labs(title = "Halicud",
+       x = "Precent of votes",
+       y = "Amount of appartments")
+
+```
+```{r echo=FALSE}
+ggplot(vote_psg_and_Properties_in_cities, aes(x = Yesh_atid, y = amount_of_appartments)) +
+  geom_point() +
+  labs(title = "Yesh_atid",
+       x = "Precent of votes",
+       y = "Amount of appartments")
+
+```
+
+```{r echo=FALSE}
+ggplot(vote_psg_and_Properties_in_cities, aes(x = Machane_Mamalachti, y = amount_of_appartments)) +
+  geom_point() +
+  labs(title = "Machane_Mamalachti",
+       x = "Precent of votes",
+       y = "Amount of appartments")
+
+```
+
+```{r echo=FALSE}
+ggplot(vote_psg_and_Properties_in_cities, aes(x = Yahadut_Hatora, y = amount_of_appartments)) +
+  geom_point() +
+  labs(title = "Yahadut_Hatora",
+       x = "Precent of votes",
+       y = "Amount of appartments")
+
+```
+
+```{r echo=FALSE}
+ggplot(vote_psg_and_Properties_in_cities, aes(x = Tsionot_Datit, y = amount_of_appartments)) +
+  geom_point() +
+  labs(title = "Tsionot_Datit",
+       x = "Precent of votes",
+       y = "Amount of appartments")
+
+```
+
+```{r echo=FALSE}
+ggplot(vote_psg_and_Properties_in_cities, aes(x = Shas, y = amount_of_appartments)) +
+  geom_point() +
+  labs(title = "Shas",
+       x = "Precent of votes",
+       y = "Amount of appartments")
+
+```
+
+```{r echo=FALSE}
+ggplot(vote_psg_and_Properties_in_cities, aes(x = Israel_Beitenu, y = amount_of_appartments)) +
+  geom_point() +
+  labs(title = "Israel_Beitenu",
+       x = "Precent of votes",
+       y = "Amount of appartments")
+
+```
+
+```{r echo=FALSE}
+ggplot(vote_psg_and_Properties_in_cities, aes(x = Hadash_Taal, y = amount_of_appartments)) +
+  geom_point() +
+  labs(title = "Hadash_Taal",
+       x = "Precent of votes",
+       y = "Amount of appartments")
+
+```
+
+```{r echo=FALSE}
+ggplot(vote_psg_and_Properties_in_cities, aes(x = Raam, y = amount_of_appartments)) +
+  geom_point() +
+  labs(title = "Raam",
+       x = "Precent of votes",
+       y = "Amount of appartments")
+
+```
+
+```{r echo=FALSE}
+ggplot(vote_psg_and_Properties_in_cities, aes(x = Avoda, y = amount_of_appartments)) +
+  geom_point() +
+  labs(title = "Avoda",
+       x = "Precent of votes",
+       y = "Amount of appartments")
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+```{r echo=FALSE}
+purchused_in_cities = Purcheuses %>%
+  group_by(city_lms_name) %>%
+  summarise(amount_of_appartments = sum(x3_rooms_apartments) + sum(x4_rooms_apartments))
+
+purchused_in_cities
+
+```
+
+```{r echo=FALSE}
+
+vote_psg_and_purchused_in_cities <- inner_join(purchused_in_cities, elect_results_psg,
+                                               by = c("city_lms_name" = "settlement"))
+
+vote_psg_and_purchused_in_cities
+
+```
+
+```{r echo=FALSE}
+ggplot(vote_psg_and_purchused_in_cities, aes(x = Halicud, y = amount_of_appartments)) +
+  geom_point() +
+  labs(title = "Halicud",
+       x = "Precent of votes",
+       y = "Amount of purchused appartments")
+
+```
+```{r echo=FALSE}
+ggplot(vote_psg_and_purchused_in_cities, aes(x = Yesh_atid, y = amount_of_appartments)) +
+  geom_point() +
+  labs(title = "Yesh_atid",
+       x = "Precent of votes",
+       y = "Amount of purchused appartments")
+
+```
+
+```{r echo=FALSE}
+ggplot(vote_psg_and_purchused_in_cities, aes(x = Machane_Mamalachti, y = amount_of_appartments)) +
+  geom_point() +
+  labs(title = "Machane_Mamalachti",
+       x = "Precent of votes",
+       y = "Amount of purchused appartments")
+
+```
+
+```{r echo=FALSE}
+ggplot(vote_psg_and_purchused_in_cities, aes(x = Yahadut_Hatora, y = amount_of_appartments)) +
+  geom_point() +
+  labs(title = "Yahadut_Hatora",
+       x = "Precent of votes",
+       y = "Amount of purchused appartments")
+
+```
+
+```{r echo=FALSE}
+ggplot(vote_psg_and_purchused_in_cities, aes(x = Tsionot_Datit, y = amount_of_appartments)) +
+  geom_point() +
+  labs(title = "Tsionot_Datit",
+       x = "Precent of votes",
+       y = "Amount of purchused appartments")
+
+```
+
+```{r echo=FALSE}
+ggplot(vote_psg_and_purchused_in_cities, aes(x = Shas, y = amount_of_appartments)) +
+  geom_point() +
+  labs(title = "Shas",
+       x = "Precent of votes",
+       y = "Amount of purchused appartments")
+
+```
+
+```{r echo=FALSE}
+ggplot(vote_psg_and_purchused_in_cities, aes(x = Israel_Beitenu, y = amount_of_appartments)) +
+  geom_point() +
+  labs(title = "Israel_Beitenu",
+       x = "Precent of votes",
+       y = "Amount of purchused appartments")
+
+```
+
+```{r echo=FALSE}
+ggplot(vote_psg_and_purchused_in_cities, aes(x = Hadash_Taal, y = amount_of_appartments)) +
+  geom_point() +
+  labs(title = "Hadash_Taal",
+       x = "Precent of votes",
+       y = "Amount of purchused appartments")
+
+```
+
+```{r echo=FALSE}
+ggplot(vote_psg_and_purchused_in_cities, aes(x = Raam, y = amount_of_appartments)) +
+  geom_point() +
+  labs(title = "Raam",
+       x = "Precent of votes",
+       y = "Amount of purchused appartments")
+
+```
+
+```{r echo=FALSE}
+ggplot(vote_psg_and_purchused_in_cities, aes(x = Avoda, y = amount_of_appartments)) +
+  geom_point() +
+  labs(title = "Avoda",
+       x = "Precent of votes",
+       y = "Amount of purchused appartments")
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
