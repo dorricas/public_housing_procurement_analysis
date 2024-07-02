@@ -112,11 +112,10 @@ Purchuses_Elections <- Purchuses_Elections %>%
 ```
 
 
-
 ```{r}
 # selecting relevant columns
 Purchuses_Elections <- Purchuses_Elections %>%
-  dplyr::select(lamas_name, year, x3_rooms_apartments, x4_rooms_apartments, x3_average_paid_in_Mil, x4_average_paid_in_Mil, sum_apartments, total_paid_in_Mil, BZB, first.party, second.party, third.party, forth.party, first.party.percentage, second.party.percentage, third.party.percentage, forth.party.percentage, coalition.support)
+  dplyr::select(lamas_name, year, x3_rooms_apartments, x4_rooms_apartments, x3_average_paid_in_Mil, x4_average_paid_in_Mil, sum_apartments, total_paid_in_Mil, first.party, second.party, third.party, forth.party, first.party.percentage, second.party.percentage, third.party.percentage, forth.party.percentage, coalition.support, BZB, Vote.precentage)
 
 # Fix party name
 Purchuses_Elections <- Purchuses_Elections %>%
@@ -316,6 +315,10 @@ plot(Purchuses_Elections$coalition.support, Purchuses_Elections$sum_apartments,
 
 # Add the fitted values line
 lines(Purchuses_Elections$coalition.support, Purchuses_Elections$fitted_values, col = "red", lwd = 2)
+
+ggplot(data = Purchuses_Elections, aes(x = coalition.support, y = sum_apartments)) +
+  geom_point() +
+  geom_smooth(method = 'glm', method.args = list(family = 'poisson'))
 ```
 
 ### log(sum_apartments) = 2.33383 + 0.34278 * coalition.support  
@@ -366,6 +369,22 @@ ggplot(data.frame(Actual = Purchuses_Elections$sum_apartments, Predicted = predi
 ```
 
 ### this model fits the data better than all previous models (by AIC and residual deviance), this model strethen previous results that stronger coalition support increases the amount of purchased apartmnets. Yet, strong support of one party decreases the amount of purchased apartments.
+
+
+```{r}
+# poisson regression: predict log of num apartments purchased by coalition support and vote percentage
+coalition_votePer_model <- glm(sum_apartments ~ coalition.support + Vote.precentage, data = Purchuses_Elections, family = poisson)
+summary(coalition_votePer_model)
+crPlots(coalition_votePer_model)
+```
+
+
+```{r}
+# poisson regression: predict log of num apartments purchased by coalition support and BZB
+coalition_BZB_model <- glm(sum_apartments ~ coalition.support + BZB, data = Purchuses_Elections, family = poisson)
+summary(coalition_BZB_model)
+crPlots(coalition_BZB_model)
+```
 
 
 # Models - PropertiesRooms
@@ -459,4 +478,216 @@ summary(coalition_totRooms_partyPer_model)
 
 ### better AIC than previous model, no better than purchased models
 
+
+# Model visualization
+
+```{r}
+# selected model: coalition_sumApt_model, df: Purchuses_Elections
+summary(coalition_sumApt_model)
+```
+
+```{r}
+# Poisson glm for a the data
+ggplot(data = Purchuses_Elections, aes(x = coalition.support, y = sum_apartments)) +
+  geom_point(alpha = 0.3) +
+  geom_smooth(aes(x = coalition.support, y = sum_apartments), se = FALSE, method = 'glm', method.args = list(family = 'poisson')) +
+  labs(title = "Coalition Support vs Sum of Apartments",
+       x = "Coalition Support",
+       y = "Sum of Apartments",
+    ) + 
+  theme_minimal()
+```
+
+```{r}
+# Poisson glm colored by year
+ggplot(data = Purchuses_Elections, aes(x = coalition.support, y = sum_apartments, color = as.factor(year))) +
+  geom_point(alpha = 0.3) +
+  geom_smooth(aes(x = coalition.support, y = sum_apartments), se = FALSE, method = 'glm', method.args = list(family = 'poisson')) +
+  labs(title = "Coalition Support vs Sum of Apartments",
+       x = "Coalition Support",
+       y = "Sum of Apartments",
+       color = "Year") + 
+  theme_minimal()
+```
+
+```{r}
+# Poisson glm facet by year
+ggplot(data = Purchuses_Elections, aes(x = coalition.support, y = sum_apartments, color = as.factor(year))) +
+  geom_point(alpha = 0.3) +
+  geom_smooth(aes(x = coalition.support, y = sum_apartments), se = FALSE, method = 'glm', method.args = list(family = 'poisson')) +
+  labs(title = "Coalition Support vs Sum of Apartments",
+       x = "Coalition Support",
+       y = "Sum of Apartments",
+       color = "Year") + 
+  theme_minimal() +
+  facet_wrap(~ year)
+```
+
+```{r}
+# bar plot for 2017
+
+# Filter data for 2017
+data_year_2017 <- Purchuses_Elections %>% filter(year == 2017)
+
+# Create ggplot with enhanced aesthetics
+ggplot(data_year_2017, aes(x = coalition.support, y = sum_apartments)) +
+  geom_point(alpha = 0.2, color = "#F06543") +  # Increase alpha transparency and change point color
+  geom_smooth(aes(color = "Smoothing Curve"), 
+              method = 'glm', method.args = list(family = 'poisson'), se = TRUE, linetype = "solid") +  # Adjust line type for smooth curve
+  labs(title = "Coalition Support vs Sum of Apartments in 2017",  # Improve title
+       x = "Coalition Support",
+       y = "Sum of Apartments") +
+  scale_color_manual(values = c("Smoothing Curve" = "#F06543"), guide = FALSE) +  # Manually set color for smooth curve and hide legend
+  theme_minimal() +  # Use minimal theme for cleaner appearance
+  theme(plot.title = element_text(size = 16, face = "bold"),  # Adjust title size and style
+        axis.title = element_text(size = 14),  # Adjust axis label size
+        axis.text = element_text(size = 12))  # Adjust axis tick label size
+```
+
+```{r}
+# bar plot for 2018
+
+# Filter data for 2018
+data_year_2018 <- Purchuses_Elections %>% filter(year == 2018)
+
+# Create ggplot with enhanced aesthetics
+ggplot(data_year_2018, aes(x = coalition.support, y = sum_apartments)) +
+  geom_point(alpha = 0.2, color = "#F09D51") +  # Increase alpha transparency and change point color
+  geom_smooth(aes(color = "Smoothing Curve"), 
+              method = 'glm', method.args = list(family = 'poisson'), se = TRUE, linetype = "solid") +  # Adjust line type for smooth curve
+  labs(title = "Coalition Support vs Sum of Apartments in 2018",  # Improve title
+       x = "Coalition Support",
+       y = "Sum of Apartments") +
+  scale_color_manual(values = c("Smoothing Curve" = "#F09D51"), guide = FALSE) +  # Manually set color for smooth curve and hide legend
+  theme_minimal() +  # Use minimal theme for cleaner appearance
+  theme(plot.title = element_text(size = 16, face = "bold"),  # Adjust title size and style
+        axis.title = element_text(size = 14),  # Adjust axis label size
+        axis.text = element_text(size = 12))  # Adjust axis tick label size
+```
+
+```{r}
+# bar plot for 2019
+
+# Filter data for 2019
+data_year_2019 <- Purchuses_Elections %>% filter(year == 2019)
+
+# Create ggplot with enhanced aesthetics
+ggplot(data_year_2019, aes(x = coalition.support, y = sum_apartments)) +
+  geom_point(alpha = 0.2, color = "#7ACB23") +  # Increase alpha transparency and change point color
+  geom_smooth(aes(color = "Smoothing Curve"), 
+              method = 'glm', method.args = list(family = 'poisson'), se = TRUE, linetype = "solid") +  # Adjust line type for smooth curve
+  labs(title = "Coalition Support vs Sum of Apartments in 2019",  # Improve title
+       x = "Coalition Support",
+       y = "Sum of Apartments") +
+  scale_color_manual(values = c("Smoothing Curve" = "#7ACB23"), guide = FALSE) +  # Manually set color for smooth curve and hide legend
+  theme_minimal() +  # Use minimal theme for cleaner appearance
+  theme(plot.title = element_text(size = 16, face = "bold"),  # Adjust title size and style
+        axis.title = element_text(size = 14),  # Adjust axis label size
+        axis.text = element_text(size = 12))  # Adjust axis tick label size
+```
+
+```{r}
+# bar plot for 2020
+
+# Filter data for 2020
+data_year_2020 <- Purchuses_Elections %>% filter(year == 2020)
+
+# Create ggplot with enhanced aesthetics
+ggplot(data_year_2020, aes(x = coalition.support, y = sum_apartments)) +
+  geom_point(alpha = 0.2, color = "#43DF9B") +  # Increase alpha transparency and change point color
+  geom_smooth(aes(color = "Smoothing Curve"), 
+              method = 'glm', method.args = list(family = 'poisson'), se = TRUE, linetype = "solid") +  # Adjust line type for smooth curve
+  labs(title = "Coalition Support vs Sum of Apartments in 2020",  # Improve title
+       x = "Coalition Support",
+       y = "Sum of Apartments") +
+  scale_color_manual(values = c("Smoothing Curve" = "#43DF9B"), guide = FALSE) +  # Manually set color for smooth curve and hide legend
+  theme_minimal() +  # Use minimal theme for cleaner appearance
+  theme(plot.title = element_text(size = 16, face = "bold"),  # Adjust title size and style
+        axis.title = element_text(size = 14),  # Adjust axis label size
+        axis.text = element_text(size = 12))  # Adjust axis tick label size
+```
+
+```{r}
+# bar plot for 2021
+
+# Filter data for 2021
+data_year_2021 <- Purchuses_Elections %>% filter(year == 2021)
+
+# Create ggplot with enhanced aesthetics
+ggplot(data_year_2021, aes(x = coalition.support, y = sum_apartments)) +
+  geom_point(alpha = 0.2, color = "#50F4EB") +  # Increase alpha transparency and change point color
+  geom_smooth(aes(color = "Smoothing Curve"), 
+              method = 'glm', method.args = list(family = 'poisson'), se = TRUE, linetype = "solid") +  # Adjust line type for smooth curve
+  labs(title = "Coalition Support vs Sum of Apartments in 2021",  # Improve title
+       x = "Coalition Support",
+       y = "Sum of Apartments") +
+  scale_color_manual(values = c("Smoothing Curve" = "#50F4EB"), guide = FALSE) +  # Manually set color for smooth curve and hide legend
+  theme_minimal() +  # Use minimal theme for cleaner appearance
+  theme(plot.title = element_text(size = 16, face = "bold"),  # Adjust title size and style
+        axis.title = element_text(size = 14),  # Adjust axis label size
+        axis.text = element_text(size = 12))  # Adjust axis tick label size
+```
+
+```{r}
+# bar plot for 2022
+
+# Filter data for 2022
+data_year_2022 <- Purchuses_Elections %>% filter(year == 2022)
+
+# Create ggplot with enhanced aesthetics
+ggplot(data_year_2022, aes(x = coalition.support, y = sum_apartments)) +
+  geom_point(alpha = 0.2, color = "#4F65FA") +  # Increase alpha transparency and change point color
+  geom_smooth(aes(color = "Smoothing Curve"), 
+              method = 'glm', method.args = list(family = 'poisson'), se = TRUE, linetype = "solid") +  # Adjust line type for smooth curve
+  labs(title = "Coalition Support vs Sum of Apartments in 2022",  # Improve title
+       x = "Coalition Support",
+       y = "Sum of Apartments") +
+  scale_color_manual(values = c("Smoothing Curve" = "#4F65FA"), guide = FALSE) +  # Manually set color for smooth curve and hide legend
+  theme_minimal() +  # Use minimal theme for cleaner appearance
+  theme(plot.title = element_text(size = 16, face = "bold"),  # Adjust title size and style
+        axis.title = element_text(size = 14),  # Adjust axis label size
+        axis.text = element_text(size = 12))  # Adjust axis tick label size
+```
+
+```{r}
+# bar plot for 2023
+
+# Filter data for 2023
+data_year_2023 <- Purchuses_Elections %>% filter(year == 2023)
+
+# Create ggplot with enhanced aesthetics
+ggplot(data_year_2023, aes(x = coalition.support, y = sum_apartments)) +
+  geom_point(alpha = 0.2, color = "#BE23CC") +  # Increase alpha transparency and change point color
+  geom_smooth(aes(color = "Smoothing Curve"), 
+              method = 'glm', method.args = list(family = 'poisson'), se = TRUE, linetype = "solid") +  # Adjust line type for smooth curve
+  labs(title = "Coalition Support vs Sum of Apartments in 2023",  # Improve title
+       x = "Coalition Support",
+       y = "Sum of Apartments") +
+  scale_color_manual(values = c("Smoothing Curve" = "#BE23CC"), guide = FALSE) +  # Manually set color for smooth curve and hide legend
+  theme_minimal() +  # Use minimal theme for cleaner appearance
+  theme(plot.title = element_text(size = 16, face = "bold"),  # Adjust title size and style
+        axis.title = element_text(size = 14),  # Adjust axis label size
+        axis.text = element_text(size = 12))  # Adjust axis tick label size
+```
+
+```{r}
+# bar plot for 2024
+
+# Filter data for 2024
+data_year_2024 <- Purchuses_Elections %>% filter(year == 2024)
+
+# Create ggplot with enhanced aesthetics
+ggplot(data_year_2024, aes(x = coalition.support, y = sum_apartments)) +
+  geom_point(alpha = 0.2, color = "#FF00E6") +  # Increase alpha transparency and change point color
+  geom_smooth(aes(color = "Smoothing Curve"), 
+              method = 'glm', method.args = list(family = 'poisson'), se = TRUE, linetype = "solid") +  # Adjust line type for smooth curve
+  labs(title = "Coalition Support vs Sum of Apartments in 2024",  # Improve title
+       x = "Coalition Support",
+       y = "Sum of Apartments") +
+  scale_color_manual(values = c("Smoothing Curve" = "#FF00E6"), guide = FALSE) +  # Manually set color for smooth curve and hide legend
+  theme_minimal() +  # Use minimal theme for cleaner appearance
+  theme(plot.title = element_text(size = 16, face = "bold"),  # Adjust title size and style
+        axis.title = element_text(size = 14),  # Adjust axis label size
+        axis.text = element_text(size = 12))  # Adjust axis tick label size
+```
 
