@@ -377,6 +377,25 @@ summary(coalition_totRooms_partyPer_model)
 # Model visualization
 ### chosen model: coalition_sumApt_model, df: Purchuses_Elections
 
+
+
+```{r}
+# Fit Poisson regression model
+coalition_sumApt_model <- glm(sum_apartments ~ coalition.support, data = Purchuses_Elections, family = poisson)
+
+# Predict values
+predicted <- predict(coalition_sumApt_model, type = "response")
+
+# Calculate errors
+MAE <- mean(abs(Purchuses_Elections$sum_apartments - predicted))
+RMSE <- sqrt(mean((Purchuses_Elections$sum_apartments - predicted)^2))
+
+# Display results
+cat("Mean Absolute Error (MAE):", MAE, "\n")
+cat("Root Mean Squared Error (RMSE):", RMSE, "\n")
+```
+
+
 ```{r}
 # Poisson glm for a the data
 ggplot(data = Purchuses_Elections, aes(x = coalition.support, y = sum_apartments)) +
