@@ -477,30 +477,3 @@ ggplot(co_vote_psg_and_Purchased_in_cities, aes(x = coalition, y = amount_of_app
 ```
 
 
-
-
-
-```{r echo=FALSE}
-
-
-oposition_vote_psg <- data.frame(
-  settlement = coalition_vote_psg$settlement,
-  oposition = 1 - coalition_vote_psg$coalition
-  )
-
-op_vote_psg_and_Properties_in_cities <- inner_join(Properties_in_cities, oposition_vote_psg,
-                                               by = c("city_lms_name" = "settlement"))
-
-op_vote_psg_and_Properties_in_cities
-
-```
-
-
-```{r echo=FALSE}
-ggplot(op_vote_psg_and_Properties_in_cities, aes(x = oposition, y = amount_of_appartments)) +
-  geom_point() +
-  labs(title = "oposition",
-       x = "Precent of votes",
-       y = "Amount of purchused appartments")
-
-```
