@@ -448,7 +448,8 @@ ggplot(data = Purchuses_Elections, aes(x = coalition.support, y = sum_apartments
        y = "Sum of Apartments",
        color = "Year") + 
   theme_minimal() +
-  facet_wrap(~ year)
+  facet_wrap(~ year, ncol = 4) +
+  theme(panel.spacing = unit(1, "lines"))
 ```
 
 ```{r}
