@@ -3,11 +3,11 @@ title: "Project proposal"
 author: "Team number 4"
 mainfont: Roboto
 fontsize: 10pt
-output:
-  pdf_document:
-    includes:
-      in_header: header.tex
-# output: html_document
+# output:
+#   pdf_document:
+#     includes:
+#       in_header: header.tex
+output: html_document
 ---
 
 
@@ -293,7 +293,7 @@ ggplot(data = Vacant_apartments_count,
   labs(x = "City", y = "Aartments", title = "Number of available apartments by city",fill = "Number of rooms",subtitle = "collected in May 24")
 ```
 ```{r echo=FALSE}
-custom_colors <- c("2017" = "#4281A4", "2018" = "#9CAFB7", "2019" = "#EAD2AC", "2020" = "#E6B89C", "2021" = "#FE938C", "2022" = "#DC3F34", "2023" = "#870E06", "2024" = "#3E3E3B")
+custom_colors <- c("2017" = "#609791", "2018" = "#81B4AF", "2019" = "#A3D2CD", "2020" = "#C4BCAB", "2021" = "#CB485C", "2022" = "#CB0511", "2023" = "#B4010B", "2024" = "#740410")
 
 # Purcheuses
 
@@ -314,9 +314,23 @@ ggplot(data = Purcheues_summary, aes(x = city_lms_name, y = total_apartments, fi
   theme_minimal() +  # Use a minimal theme for simplicity
   theme(axis.text.x = element_text(angle = -90, hjust = 0)) +
   labs(x = "City", y = "Total Apartments Bought",
-       title = "Total Apartments Bought by City, Stacked by Year",
+       title = "Total Apartments Bought by City",
        fill = "Year")
 
+```
+```{r}
+Purcheuses_group_year <- Purcheuses %>% 
+  group_by(year) %>%
+  summarize(total_apartments = sum(x3_rooms_apartments, na.rm = TRUE) + sum(x4_rooms_apartments, na.rm = TRUE))
+Purcheuses_group_year
+
+ggplot(Purcheuses_group_year, aes(x = year, y = total_apartments)) +
+  geom_bar(stat = "identity", fill = "#609791") +
+  labs(title = "Total Number of Apartments per Year", x = "Year", y = "Total Apartments") +
+  theme_minimal()
+```
+```{r}
+Purcheuses
 ```
 
 
