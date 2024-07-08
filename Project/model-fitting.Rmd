@@ -460,13 +460,12 @@ data_year_2017 <- Purchuses_Elections %>% filter(year == 2017)
 
 # Create ggplot with enhanced aesthetics
 ggplot(data_year_2017, aes(x = coalition.support, y = sum_apartments)) +
-  geom_point(alpha = 0.2, color = "#609791") +  # Increase alpha transparency and change point color
+  geom_point(alpha = 0.2, color = "#CB485C") +  # Increase alpha transparency and change point color
   geom_smooth(aes(color = "Smoothing Curve"), 
-              method = 'glm', method.args = list(family = 'poisson'), se = TRUE, linetype = "solid") +  # Adjust line type for smooth curve
-  labs(title = "Coalition Support vs Sum of Apartments in 2017",  # Improve title
-       x = "Coalition Support",
-       y = "Sum of Apartments") +
-  scale_color_manual(values = c("Smoothing Curve" = "#609791"), guide = FALSE) +  # Manually set color for smooth curve and hide legend
+              method = 'glm', method.args = list(family = 'poisson'), se = TRUE, 
+              linetype = "solid", size = 1.5) +  # Adjust line type for smooth curve
+  labs(x = "Coalition Support", y = "Sum of Apartments") +
+  scale_color_manual(values = c("Smoothing Curve" = "#CB485C"), guide = FALSE) +  # Manually set color for smooth curve and hide legend
   theme_minimal() +  # Use minimal theme for cleaner appearance
   theme(plot.title = element_text(size = 16, face = "bold"),  # Adjust title size and style
         axis.title = element_text(size = 14),  # Adjust axis label size
@@ -481,13 +480,12 @@ data_year_2018 <- Purchuses_Elections %>% filter(year == 2018)
 
 # Create ggplot with enhanced aesthetics
 ggplot(data_year_2018, aes(x = coalition.support, y = sum_apartments)) +
-  geom_point(alpha = 0.2, color = "#81B4AF") +  # Increase alpha transparency and change point color
+  geom_point(alpha = 0.2, color = "#CB0511") +  # Increase alpha transparency and change point color
   geom_smooth(aes(color = "Smoothing Curve"), 
-              method = 'glm', method.args = list(family = 'poisson'), se = TRUE, linetype = "solid") +  # Adjust line type for smooth curve
-  labs(title = "Coalition Support vs Sum of Apartments in 2018",  # Improve title
-       x = "Coalition Support",
-       y = "Sum of Apartments") +
-  scale_color_manual(values = c("Smoothing Curve" = "#81B4AF"), guide = FALSE) +  # Manually set color for smooth curve and hide legend
+              method = 'glm', method.args = list(family = 'poisson'), se = TRUE, 
+              linetype = "solid", size = 1.5) +  # Adjust line type for smooth curve
+  labs(x = "Coalition Support", y = "Sum of Apartments") +
+  scale_color_manual(values = c("Smoothing Curve" = "#CB0511"), guide = FALSE) +  # Manually set color for smooth curve and hide legend
   theme_minimal() +  # Use minimal theme for cleaner appearance
   theme(plot.title = element_text(size = 16, face = "bold"),  # Adjust title size and style
         axis.title = element_text(size = 14),  # Adjust axis label size
@@ -502,13 +500,12 @@ data_year_2019 <- Purchuses_Elections %>% filter(year == 2019)
 
 # Create ggplot with enhanced aesthetics
 ggplot(data_year_2019, aes(x = coalition.support, y = sum_apartments)) +
-  geom_point(alpha = 0.2, color = "#A3D2CD") +  # Increase alpha transparency and change point color
+  geom_point(alpha = 0.2, color = "#B4010B") +  # Increase alpha transparency and change point color
   geom_smooth(aes(color = "Smoothing Curve"), 
-              method = 'glm', method.args = list(family = 'poisson'), se = TRUE, linetype = "solid") +  # Adjust line type for smooth curve
-  labs(title = "Coalition Support vs Sum of Apartments in 2019",  # Improve title
-       x = "Coalition Support",
-       y = "Sum of Apartments") +
-  scale_color_manual(values = c("Smoothing Curve" = "#A3D2CD"), guide = FALSE) +  # Manually set color for smooth curve and hide legend
+              method = 'glm', method.args = list(family = 'poisson'), se = TRUE, 
+              linetype = "solid", size = 1.5) +  # Adjust line type for smooth curve
+  labs(x = "Coalition Support", y = "Sum of Apartments") +
+  scale_color_manual(values = c("Smoothing Curve" = "#B4010B"), guide = FALSE) +  # Manually set color for smooth curve and hide legend
   theme_minimal() +  # Use minimal theme for cleaner appearance
   theme(plot.title = element_text(size = 16, face = "bold"),  # Adjust title size and style
         axis.title = element_text(size = 14),  # Adjust axis label size
@@ -523,13 +520,12 @@ data_year_2020 <- Purchuses_Elections %>% filter(year == 2020)
 
 # Create ggplot with enhanced aesthetics
 ggplot(data_year_2020, aes(x = coalition.support, y = sum_apartments)) +
-  geom_point(alpha = 0.2, color = "#C4BCAB") +  # Increase alpha transparency and change point color
+  geom_point(alpha = 0.2, color = "#740410") +  # Increase alpha transparency and change point color
   geom_smooth(aes(color = "Smoothing Curve"), 
-              method = 'glm', method.args = list(family = 'poisson'), se = TRUE, linetype = "solid") +  # Adjust line type for smooth curve
-  labs(title = "Coalition Support vs Sum of Apartments in 2020",  # Improve title
-       x = "Coalition Support",
-       y = "Sum of Apartments") +
-  scale_color_manual(values = c("Smoothing Curve" = "#C4BCAB"), guide = FALSE) +  # Manually set color for smooth curve and hide legend
+              method = 'glm', method.args = list(family = 'poisson'), se = TRUE, 
+              linetype = "solid", size = 1.5) +  # Adjust line type for smooth curve
+  labs(x = "Coalition Support", y = "Sum of Apartments") +
+  scale_color_manual(values = c("Smoothing Curve" = "#740410"), guide = FALSE) +  # Manually set color for smooth curve and hide legend
   theme_minimal() +  # Use minimal theme for cleaner appearance
   theme(plot.title = element_text(size = 16, face = "bold"),  # Adjust title size and style
         axis.title = element_text(size = 14),  # Adjust axis label size
@@ -546,10 +542,9 @@ data_year_2021 <- Purchuses_Elections %>% filter(year == 2021)
 ggplot(data_year_2021, aes(x = coalition.support, y = sum_apartments)) +
   geom_point(alpha = 0.2, color = "#CB485C") +  # Increase alpha transparency and change point color
   geom_smooth(aes(color = "Smoothing Curve"), 
-              method = 'glm', method.args = list(family = 'poisson'), se = TRUE, linetype = "solid") +  # Adjust line type for smooth curve
-  labs(title = "Coalition Support vs Sum of Apartments in 2021",  # Improve title
-       x = "Coalition Support",
-       y = "Sum of Apartments") +
+              method = 'glm', method.args = list(family = 'poisson'), se = TRUE, 
+              linetype = "solid", size = 1.5) +  # Adjust line type for smooth curve
+  labs(x = "Coalition Support", y = "Sum of Apartments") +
   scale_color_manual(values = c("Smoothing Curve" = "#CB485C"), guide = FALSE) +  # Manually set color for smooth curve and hide legend
   theme_minimal() +  # Use minimal theme for cleaner appearance
   theme(plot.title = element_text(size = 16, face = "bold"),  # Adjust title size and style
@@ -567,10 +562,9 @@ data_year_2022 <- Purchuses_Elections %>% filter(year == 2022)
 ggplot(data_year_2022, aes(x = coalition.support, y = sum_apartments)) +
   geom_point(alpha = 0.2, color = "#CB0511") +  # Increase alpha transparency and change point color
   geom_smooth(aes(color = "Smoothing Curve"), 
-              method = 'glm', method.args = list(family = 'poisson'), se = TRUE, linetype = "solid") +  # Adjust line type for smooth curve
-  labs(title = "Coalition Support vs Sum of Apartments in 2022",  # Improve title
-       x = "Coalition Support",
-       y = "Sum of Apartments") +
+              method = 'glm', method.args = list(family = 'poisson'), se = TRUE, 
+              linetype = "solid", size = 1.5) +  # Adjust line type for smooth curve
+  labs(x = "Coalition Support", y = "Sum of Apartments") +
   scale_color_manual(values = c("Smoothing Curve" = "#CB0511"), guide = FALSE) +  # Manually set color for smooth curve and hide legend
   theme_minimal() +  # Use minimal theme for cleaner appearance
   theme(plot.title = element_text(size = 16, face = "bold"),  # Adjust title size and style
@@ -588,10 +582,9 @@ data_year_2023 <- Purchuses_Elections %>% filter(year == 2023)
 ggplot(data_year_2023, aes(x = coalition.support, y = sum_apartments)) +
   geom_point(alpha = 0.2, color = "#B4010B") +  # Increase alpha transparency and change point color
   geom_smooth(aes(color = "Smoothing Curve"), 
-              method = 'glm', method.args = list(family = 'poisson'), se = TRUE, linetype = "solid") +  # Adjust line type for smooth curve
-  labs(title = "Coalition Support vs Sum of Apartments in 2023",  # Improve title
-       x = "Coalition Support",
-       y = "Sum of Apartments") +
+              method = 'glm', method.args = list(family = 'poisson'), se = TRUE, 
+              linetype = "solid", size = 1.5) +  # Adjust line type for smooth curve
+  labs(x = "Coalition Support", y = "Sum of Apartments") +
   scale_color_manual(values = c("Smoothing Curve" = "#B4010B"), guide = FALSE) +  # Manually set color for smooth curve and hide legend
   theme_minimal() +  # Use minimal theme for cleaner appearance
   theme(plot.title = element_text(size = 16, face = "bold"),  # Adjust title size and style
@@ -609,10 +602,9 @@ data_year_2024 <- Purchuses_Elections %>% filter(year == 2024)
 ggplot(data_year_2024, aes(x = coalition.support, y = sum_apartments)) +
   geom_point(alpha = 0.2, color = "#740410") +  # Increase alpha transparency and change point color
   geom_smooth(aes(color = "Smoothing Curve"), 
-              method = 'glm', method.args = list(family = 'poisson'), se = TRUE, linetype = "solid") +  # Adjust line type for smooth curve
-  labs(title = "Coalition Support vs Sum of Apartments in 2024",  # Improve title
-       x = "Coalition Support",
-       y = "Sum of Apartments") +
+              method = 'glm', method.args = list(family = 'poisson'), se = TRUE, 
+              linetype = "solid", size = 1.5) +  # Adjust line type for smooth curve
+  labs(x = "Coalition Support", y = "Sum of Apartments") +
   scale_color_manual(values = c("Smoothing Curve" = "#740410"), guide = FALSE) +  # Manually set color for smooth curve and hide legend
   theme_minimal() +  # Use minimal theme for cleaner appearance
   theme(plot.title = element_text(size = 16, face = "bold"),  # Adjust title size and style
