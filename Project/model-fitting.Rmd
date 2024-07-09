@@ -458,6 +458,13 @@ ggplot(data = Purchuses_Elections, aes(x = coalition.support, y = sum_apartments
 # Filter data for 2017
 data_year_2017 <- Purchuses_Elections %>% filter(year == 2017)
 
+# Fit the model
+model_2017 <- glm(sum_apartments ~ coalition.support, data = data_year_2017, family = poisson())
+
+# Calculate the RMSE
+predicted <- predict(model_2017, type = "response")
+rmse <- sqrt(mean((data_year_2017$sum_apartments - predicted)^2))
+
 # Create ggplot with enhanced aesthetics
 ggplot(data_year_2017, aes(x = coalition.support, y = sum_apartments)) +
   geom_point(alpha = 0.2, color = "#CB485C") +  # Increase alpha transparency and change point color
@@ -469,7 +476,9 @@ ggplot(data_year_2017, aes(x = coalition.support, y = sum_apartments)) +
   theme_minimal() +  # Use minimal theme for cleaner appearance
   theme(plot.title = element_text(size = 16, face = "bold"),  # Adjust title size and style
         axis.title = element_text(size = 14),  # Adjust axis label size
-        axis.text = element_text(size = 12))  # Adjust axis tick label size
+        axis.text = element_text(size = 12)) +  # Adjust axis tick label size
+  annotate("text", x = Inf, y = Inf, label = paste("RMSE:", round(rmse, 2)), 
+           hjust = 1.1, vjust = 1.5, size = 5, color = "black")  # Annotate RMSE on the plot
 ```
 
 ```{r}
@@ -477,6 +486,13 @@ ggplot(data_year_2017, aes(x = coalition.support, y = sum_apartments)) +
 
 # Filter data for 2018
 data_year_2018 <- Purchuses_Elections %>% filter(year == 2018)
+
+# Fit the model
+model_2018 <- glm(sum_apartments ~ coalition.support, data = data_year_2018, family = poisson())
+
+# Calculate the RMSE
+predicted <- predict(model_2018, type = "response")
+rmse <- sqrt(mean((data_year_2018$sum_apartments - predicted)^2))
 
 # Create ggplot with enhanced aesthetics
 ggplot(data_year_2018, aes(x = coalition.support, y = sum_apartments)) +
@@ -489,7 +505,9 @@ ggplot(data_year_2018, aes(x = coalition.support, y = sum_apartments)) +
   theme_minimal() +  # Use minimal theme for cleaner appearance
   theme(plot.title = element_text(size = 16, face = "bold"),  # Adjust title size and style
         axis.title = element_text(size = 14),  # Adjust axis label size
-        axis.text = element_text(size = 12))  # Adjust axis tick label size
+        axis.text = element_text(size = 12)) +  # Adjust axis tick label size
+  annotate("text", x = Inf, y = Inf, label = paste("RMSE:", round(rmse, 2)), 
+           hjust = 1.1, vjust = 1.5, size = 5, color = "black")  # Annotate RMSE on the plot
 ```
 
 ```{r}
@@ -497,6 +515,13 @@ ggplot(data_year_2018, aes(x = coalition.support, y = sum_apartments)) +
 
 # Filter data for 2019
 data_year_2019 <- Purchuses_Elections %>% filter(year == 2019)
+
+# Fit the model
+model_2019 <- glm(sum_apartments ~ coalition.support, data = data_year_2019, family = poisson())
+
+# Calculate the RMSE
+predicted <- predict(model_2019, type = "response")
+rmse <- sqrt(mean((data_year_2019$sum_apartments - predicted)^2))
 
 # Create ggplot with enhanced aesthetics
 ggplot(data_year_2019, aes(x = coalition.support, y = sum_apartments)) +
@@ -509,7 +534,9 @@ ggplot(data_year_2019, aes(x = coalition.support, y = sum_apartments)) +
   theme_minimal() +  # Use minimal theme for cleaner appearance
   theme(plot.title = element_text(size = 16, face = "bold"),  # Adjust title size and style
         axis.title = element_text(size = 14),  # Adjust axis label size
-        axis.text = element_text(size = 12))  # Adjust axis tick label size
+        axis.text = element_text(size = 12)) +  # Adjust axis tick label size
+  annotate("text", x = Inf, y = Inf, label = paste("RMSE:", round(rmse, 2)), 
+           hjust = 1.1, vjust = 1.5, size = 5, color = "black")  # Annotate RMSE on the plot
 ```
 
 ```{r}
@@ -517,6 +544,13 @@ ggplot(data_year_2019, aes(x = coalition.support, y = sum_apartments)) +
 
 # Filter data for 2020
 data_year_2020 <- Purchuses_Elections %>% filter(year == 2020)
+
+# Fit the model
+model_2020 <- glm(sum_apartments ~ coalition.support, data = data_year_2020, family = poisson())
+
+# Calculate the RMSE
+predicted <- predict(model_2020, type = "response")
+rmse <- sqrt(mean((data_year_2020$sum_apartments - predicted)^2))
 
 # Create ggplot with enhanced aesthetics
 ggplot(data_year_2020, aes(x = coalition.support, y = sum_apartments)) +
@@ -529,7 +563,9 @@ ggplot(data_year_2020, aes(x = coalition.support, y = sum_apartments)) +
   theme_minimal() +  # Use minimal theme for cleaner appearance
   theme(plot.title = element_text(size = 16, face = "bold"),  # Adjust title size and style
         axis.title = element_text(size = 14),  # Adjust axis label size
-        axis.text = element_text(size = 12))  # Adjust axis tick label size
+        axis.text = element_text(size = 12)) +  # Adjust axis tick label size
+  annotate("text", x = Inf, y = Inf, label = paste("RMSE:", round(rmse, 2)), 
+           hjust = 1.1, vjust = 1.5, size = 5, color = "black")  # Annotate RMSE on the plot
 ```
 
 ```{r}
@@ -537,6 +573,13 @@ ggplot(data_year_2020, aes(x = coalition.support, y = sum_apartments)) +
 
 # Filter data for 2021
 data_year_2021 <- Purchuses_Elections %>% filter(year == 2021)
+
+# Fit the model
+model_2021 <- glm(sum_apartments ~ coalition.support, data = data_year_2021, family = poisson())
+
+# Calculate the RMSE
+predicted <- predict(model_2021, type = "response")
+rmse <- sqrt(mean((data_year_2021$sum_apartments - predicted)^2))
 
 # Create ggplot with enhanced aesthetics
 ggplot(data_year_2021, aes(x = coalition.support, y = sum_apartments)) +
@@ -549,7 +592,9 @@ ggplot(data_year_2021, aes(x = coalition.support, y = sum_apartments)) +
   theme_minimal() +  # Use minimal theme for cleaner appearance
   theme(plot.title = element_text(size = 16, face = "bold"),  # Adjust title size and style
         axis.title = element_text(size = 14),  # Adjust axis label size
-        axis.text = element_text(size = 12))  # Adjust axis tick label size
+        axis.text = element_text(size = 12)) +  # Adjust axis tick label size
+  annotate("text", x = Inf, y = Inf, label = paste("RMSE:", round(rmse, 2)), 
+           hjust = 1.1, vjust = 1.5, size = 5, color = "black")  # Annotate RMSE on the plot
 ```
 
 ```{r}
@@ -557,6 +602,13 @@ ggplot(data_year_2021, aes(x = coalition.support, y = sum_apartments)) +
 
 # Filter data for 2022
 data_year_2022 <- Purchuses_Elections %>% filter(year == 2022)
+
+# Fit the model
+model_2022 <- glm(sum_apartments ~ coalition.support, data = data_year_2022, family = poisson())
+
+# Calculate the RMSE
+predicted <- predict(model_2022, type = "response")
+rmse <- sqrt(mean((data_year_2022$sum_apartments - predicted)^2))
 
 # Create ggplot with enhanced aesthetics
 ggplot(data_year_2022, aes(x = coalition.support, y = sum_apartments)) +
@@ -569,7 +621,9 @@ ggplot(data_year_2022, aes(x = coalition.support, y = sum_apartments)) +
   theme_minimal() +  # Use minimal theme for cleaner appearance
   theme(plot.title = element_text(size = 16, face = "bold"),  # Adjust title size and style
         axis.title = element_text(size = 14),  # Adjust axis label size
-        axis.text = element_text(size = 12))  # Adjust axis tick label size
+        axis.text = element_text(size = 12)) +  # Adjust axis tick label size
+  annotate("text", x = Inf, y = Inf, label = paste("RMSE:", round(rmse, 2)), 
+           hjust = 1.1, vjust = 1.5, size = 5, color = "black")  # Annotate RMSE on the plot
 ```
 
 ```{r}
@@ -577,6 +631,13 @@ ggplot(data_year_2022, aes(x = coalition.support, y = sum_apartments)) +
 
 # Filter data for 2023
 data_year_2023 <- Purchuses_Elections %>% filter(year == 2023)
+
+# Fit the model
+model_2023 <- glm(sum_apartments ~ coalition.support, data = data_year_2023, family = poisson())
+
+# Calculate the RMSE
+predicted <- predict(model_2023, type = "response")
+rmse <- sqrt(mean((data_year_2023$sum_apartments - predicted)^2))
 
 # Create ggplot with enhanced aesthetics
 ggplot(data_year_2023, aes(x = coalition.support, y = sum_apartments)) +
@@ -589,14 +650,21 @@ ggplot(data_year_2023, aes(x = coalition.support, y = sum_apartments)) +
   theme_minimal() +  # Use minimal theme for cleaner appearance
   theme(plot.title = element_text(size = 16, face = "bold"),  # Adjust title size and style
         axis.title = element_text(size = 14),  # Adjust axis label size
-        axis.text = element_text(size = 12))  # Adjust axis tick label size
+        axis.text = element_text(size = 12)) +  # Adjust axis tick label size
+  annotate("text", x = Inf, y = Inf, label = paste("RMSE:", round(rmse, 2)), 
+           hjust = 1.1, vjust = 1.5, size = 5, color = "black")  # Annotate RMSE on the plot
 ```
 
 ```{r}
-# bar plot for 2024
-
 # Filter data for 2024
 data_year_2024 <- Purchuses_Elections %>% filter(year == 2024)
+
+# Fit the model
+model_2024 <- glm(sum_apartments ~ coalition.support, data = data_year_2024, family = poisson())
+
+# Calculate the RMSE
+predicted <- predict(model_2024, type = "response")
+rmse <- sqrt(mean((data_year_2024$sum_apartments - predicted)^2))
 
 # Create ggplot with enhanced aesthetics
 ggplot(data_year_2024, aes(x = coalition.support, y = sum_apartments)) +
@@ -609,6 +677,8 @@ ggplot(data_year_2024, aes(x = coalition.support, y = sum_apartments)) +
   theme_minimal() +  # Use minimal theme for cleaner appearance
   theme(plot.title = element_text(size = 16, face = "bold"),  # Adjust title size and style
         axis.title = element_text(size = 14),  # Adjust axis label size
-        axis.text = element_text(size = 12))  # Adjust axis tick label size
+        axis.text = element_text(size = 12)) +  # Adjust axis tick label size
+  annotate("text", x = Inf, y = Inf, label = paste("RMSE:", round(rmse, 2)), 
+           hjust = 1.1, vjust = 1.5, size = 5, color = "black")  # Annotate RMSE on the plot
 ```
 
