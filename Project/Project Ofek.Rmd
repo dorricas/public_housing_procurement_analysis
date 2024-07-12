@@ -1,0 +1,773 @@
+---
+title: "Data Project"
+output: html_document
+date: "2024-06-27"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r load-packages, message=FALSE, include=FALSE}
+library(knitr)
+library(tidyverse)
+library(broom)
+library(htmltools)
+library(janitor)
+library(kableExtra)
+```
+
+
+
+```{r}
+Kneset25 <- read.csv("../data/Updated/Election_Res.csv")
+Kneset24 <- read.csv("../data/Updated/kneset24.csv")
+Kneset23 <- read.csv("../data/Updated/kneset23.csv")
+Kneset22 <- read.csv("../data/Updated/kneset22.csv")
+Kneset21 <- read.csv("../data/Updated/kneset21.csv")
+Kneset20 <- read.csv("../data/Updated/kneset20.csv")
+Properties_rooms <- read.csv("../data/Updated/properties_by_rooms.csv")
+Purcheuses <- read.csv("../data/Updated/property_purchases.csv")
+Vacant_apartments <- read.csv("../data/Updated/vacant_apartments.csv")
+
+
+```
+
+```{r, renaming kneset25 columns}
+# Renaming the Hebrew variables:
+Kneset25 <- Kneset25 %>% 
+  rename(
+    Avoda = "אמת",
+    Hofesh_Calcali = "אצ",
+    Habait_Hayhudi = "ב",
+    Yahadut_Hatora = "ג",
+    Balad = "ד",
+    Hadash = "ום",
+    Shahar_Koach = "ז",
+    Kama = "זך",
+    Koach_Lehaspia = "זנ",
+    Tsomet = "זץ",
+    Tsionot_Datit = "ט",
+    Israel_Hofshit = "י",
+    Hacalalit = "יז",
+    Ihud_Benei_Brit = "ינ",
+    Tsav_Hashaa = "יץ",
+    Gush_Tanachi = "יק",
+    Machane_Mamalachti = "כן",
+    Ani_VeAta = "ך",
+    Israel_beitenu = "ל",
+    Halicud = "מחל",
+    Merets = "מרצ",
+    Kvod_Haadam = "נז",
+    Nativ = "ני",
+    Shema = "נף",
+    Atsmaiem = "נץ",
+    Yesh_kivun = "נק",
+    Anachnu = "נר",
+    Reshima_Aravit = "עם",
+    Yesh_atid = "פה",
+    Piratim = "ף",
+    Tseirim_boarim = "צ",
+    Manhigut_Hevratit = "ץ",
+    Kol_Hasviva = "ק",
+    Halev_hayehudi = "קי",
+    Seder_hadash = "קך",
+    Kol_koveaa = "קנ",
+    Beomets = "קץ",
+    Reshimat_34 = "רז",
+    Shas = "שס",
+    Ale_yarok = "ת"
+  )
+```
+
+
+```{r, renaming kneset20 columns}
+# Renaming the Hebrew variables:
+Kneset20 <- Kneset20 %>% 
+  rename(
+    Mahane_Zioni = "אמת",
+    Yahadut_Hatora = "ג",
+    Reshima_meshutefet = "ודעם",
+    Hacalcala = "ז",
+    Halicud = "מחל",
+    Yesh_atid = "פה",
+    Kulanu = "כ",
+    Habait_Hayehudi = "טב",
+    Israel_beitenu = "ל",
+    Merets = "מרצ",
+    Yahad = "קץ",
+    Ale_Yarok = "קנ",
+    Reshima_aravit = "ע",
+    Hayerukim = "רק",
+    NaNach = "ףץ",
+    Bizchutan = "נז",
+    Tikva_leshinui = "יץ",
+    Piratim = "ף",
+    Perach = "נץ",
+    Nivheret_Haam = "זץ",
+    Haor = "ני",
+    Schirut_bekavod = "י",
+    Calcala = "ז",
+    Democratura = "זך",
+    Manhigut_hevratit = "יז",
+    Shas = "שס",
+  )
+```
+
+```{r, renaming kneset21 columns}
+# Renaming the Hebrew variables:
+Kneset21 <- Kneset21 %>% 
+  rename(
+    Avoda = "אמת",
+    Yahadut_Hatora = "ג",
+    Balad = "דעם",
+    Hadash = "ום",
+    Zehut = "ז",
+    Vatikim = "זי",
+    BritOlam = "זך",
+    Yahad = "זנ",
+    Zomet = "זץ",
+    Bait_Yehudi = "טב",
+    Yashar = "י",
+    Gush_Tanachi = "יז",
+    Bnei_Brit = "ין",
+    Acharayut = "יץ",
+    Kulanu_Yamin = "כ",
+    Tikva_Leshinui = "ךק",
+    Israel_Beitenu = "ל",
+    Halicud = "מחל",
+    Merets = "מרצ",
+    Yamin_Hadash = "נ",
+    Betach = "ן",
+    Zchutotinu = "נז",
+    Kvod_haadam = "ןך",
+    Reforma = "נך",
+    Manhigut_Hevratit = "ןנ",
+    Magen = "נץ",
+    Gesher = "נר",
+    Kahul_lavan = "פה",
+    Piratim = "ףז",
+    Pashut_Ahava = "ףי",
+    Hinuch = "ףך",
+    Shavim = "ףנ",
+    NaNach = "ףץ",
+    Calacla_Yeroka = "ץ",
+    Ofek_Hadash = "ץז",
+    Ani_VeAta = "ץי",
+    Zedek_Hevrati = "צק",
+    Zedek_Lakol = "ק",
+    Erez_Israel_Shelano = "קי",
+    Mehathala = "קן",
+    Kol_Israel = "קף",
+    Reshima_Aravit = "ר",
+    Shas = "שס",
+  )
+```
+
+
+```{r, renaming kneset22 columns}
+# Renaming the Hebrew variables:
+Kneset22 <- Kneset22 %>% 
+  rename(
+    Avoda = "אמת",
+    Yahadut_Hatora = "ג",
+    Hadash_Raam = "ודעם",
+    Ozma_Calcalit = "ז",
+    Democratura = "זכ",
+    Zegut = "זן",
+    Zomet = "זץ",
+    Yamina = "טב",
+    Manhigut_Hevratit = "י",
+    Adom_lavan = "יז",
+    Notsrit_liberalit = "ינ",
+    Kvod_haadam = "יף",
+    Gush_Tanachi = "יק",
+    Noam = "כ",
+    Ahdut_amamit = "כי",
+    Otsma_yehudit = "כף",
+    Israel_Beitenu = "ל",
+    Halicud = "מחל",
+    Merets = "מרצ",
+    Mitkademt = "נ",
+    Kavod_veshivion = "נך",
+    Kol_Israel = "נץ",
+    Kahul_Lavan = "פה",
+    Piratim = "ףז",
+    Zedek = "צ",
+    Zafon = "צן",
+    Daam = "ץ",
+    Zchutotinu = "ק",
+    Seder_Hadash = "קך",
+    Kama = "קץ",
+    Yamin_hiluni = "רק",
+    Shas = "שס",
+  )
+```
+
+
+```{r, renaming kneset23 columns}
+Kneset23 <- Kneset23 %>% 
+  rename(
+    Avoda = "אמת",
+    Yahadut_Hatora = "ג",
+    Hadash_Raam = "ודעם",
+    Ozma_Liberalit = "ז",
+    Peula_LeIsrael = "זך",
+    Zomet = "זץ",
+    Yamina = "טב",
+    Hazon = "י",
+    Adom_lavan = "יז",
+    Ihud_Habrit = "ינ",
+    Gush_Tanachi = "יק",
+    Manhigut_Hevratit = "יר",
+    Halev_Hayuhudi = "כ",
+    Ani_VeAta = "כן",
+    Israel_Beitenu = "ל",
+    Halicud = "מחל",
+    Kol_Hanashim = "נ",
+    Koach_Lehashpiaa = "נז",
+    Kama = "ני",
+    Mitkademet = "נק",
+    Ozma_Yehudit = "נץ",
+    Kahul_Lavan = "פה",
+    Piratim = "ףז",
+    Daam = "ץ",
+    Israelist = "ק",
+    Shema = "קי",
+    Seder_Hadash = "קך",
+    Mishpat_Zedek = "קץ",
+    Shas = "שס",
+  )
+```
+
+
+```{r, renaming kneset 24 columns}
+Kneset24 <- Kneset24 %>% 
+  rename(
+    Avoda = "אמת",
+    Yamina = "ב",
+    Yahadut_Hatora = "ג",
+    Hadash_Raam = "ודעם",
+    Zomet = "זץ",
+    Zionot_datit = "ט",
+    Gimlaim = "י",
+    Hacalcalit_Hadash = "יז",
+    Brit_Shotfut = "ינ",
+    Gush_Tanachi = "יק",
+    Manhigut_Hevratit = "יר",
+    Kvod_haadam = "יף",
+    Halev_Hayehudi = "כ",
+    Ani_VeAta = "כך",
+    Kahul_Lavan = "כן",
+    Israel_Beitenu = "ל",
+    Halicud = "מחל",
+    Merets = "מרצ",
+    Kama = "נ",
+    Olam_Hadash = "ני",
+    Anachnu = "נר",
+    Reshima_aravit = "עם",
+    Yesh_atid = "פה",
+    Piratim = "ףז",
+    Azmenu = "צי",
+    Hets = "צף",
+    Maan = "צכ",
+    Daam = "ץ",
+    Efshari = "ק",
+    Shema = "קי",
+    Seder_Hadash = "קך",
+    Mishpat_Zedek = "קץ",
+    Rapee = "ר",
+    Hatikva_Leshinui = "ר",
+    Democratit = "רק",
+    Am_Shalem = "רף",
+    Shas = "שס",
+    Tikva_Hadasha = "ת",
+  )
+
+```
+
+```{r, showing all dataframes.}
+Kneset25 
+Kneset24 
+Kneset23 
+Kneset22 
+Kneset21 
+Kneset20 
+Properties_rooms
+Purcheuses 
+Vacant_apartments
+
+```
+
+```{r}
+# Group the dataframe by 'settlement.ID'
+grouped_by_settlement <- Kneset25 %>% group_by(settlement.ID)
+
+# Select columns from index 11 onwards (assuming 'settlement.ID' is column 11)
+cols_to_sum <- names(Kneset25)[8:ncol(Kneset25)]
+
+# Sum each column from 12 onwards within each settlement group
+settlement_sums <- grouped_by_settlement %>%
+  summarise(across(cols_to_sum, sum))  # Sum each column using 'across'
+
+citynames_and_id <- Kneset25 %>% distinct(settlement.ID,settlement.name)
+
+settlement_sums <- left_join(settlement_sums, citynames_and_id, by = "settlement.ID")
+
+# Print the summary table with settlement ID and summed column values
+print(settlement_sums)
+
+chopped_elections_sum <- settlement_sums[, 8:ncol(settlement_sums)]
+
+chopped_elections_sum$max_value <- apply(chopped_elections_sum, 1, max)
+
+# Function to get column names of the 4 largest values in each row
+top_n_col_names <- function(row, n = 4) {
+  largest_indices <- order(row, decreasing = TRUE)[1:n]
+  colnames(chopped_elections_sum)[largest_indices]
+}
+
+# Apply the function to each row
+top_4_col_names <- t(apply(chopped_elections_sum, 1, top_n_col_names))
+
+# Convert the result to a dataframe and add as new columns
+top_4_col_names_df <- as.data.frame(top_4_col_names)
+colnames(top_4_col_names_df) <- paste0("max_col_name_", 1:4)
+
+# Combine with the original dataframe
+chopped_elections_sum <- cbind(chopped_elections_sum, top_4_col_names_df)
+
+print(chopped_elections_sum)
+```
+
+```{r, functions}
+# Function to get column names of the 4 largest values in each row
+top_n_col_names <- function(row, n = 4) {
+  largest_indices <- order(row, decreasing = TRUE)[1:n]
+  colnames(chopped_elections_sum)[largest_indices]
+}
+
+# Function to get the 4 largest values in each row
+top_n_values <- function(row, n = 4) {
+  sort(row, decreasing = TRUE)[1:n]
+}
+
+# Function to sum columns dynamically based on the start and end indices
+sum_columns <- function(df, start_idx, end_idx) {
+  cols_to_sum <- names(df)[start_idx:end_idx]
+  grouped_by_settlement <- df %>% group_by(settlement.ID)
+  settlement_sums <- grouped_by_settlement %>%
+    summarise(across(all_of(cols_to_sum), sum, .names = "sum_{.col}"),
+              BZB = sum(BZB),
+              Voters = sum(Voters),
+              Lamas_code = first(Lamas_code))
+  return(settlement_sums)
+}
+
+sum_elections <- function(df){
+  
+# print(settlement_sums)
+  
+  # Apply the functions to each row
+chopped_elections_sum <- df %>%
+  select(starts_with("sum_"))
+
+# print(chopped_elections_sum)
+
+top_4_col_names <- t(apply(chopped_elections_sum, 1, top_n_col_names))
+top_4_values <- t(apply(chopped_elections_sum, 1, top_n_values))
+
+# Convert the results to dataframes and add as new columns
+top_4_col_names_df <- as.data.frame(top_4_col_names)
+top_4_values_df <- as.data.frame(top_4_values)
+
+
+# Name the new columns
+colnames(top_4_col_names_df) <- paste0("max_col_name_", 1:4)
+colnames(top_4_values_df) <- paste0("max_value_", 1:4)
+
+# Combine with the original dataframe
+chopped_elections_sum <- cbind(chopped_elections_sum, top_4_col_names_df, top_4_values_df)
+
+# Extract relevant columns to keep (settlement.ID, settlement.name, BZB, Voters, Lamas_code) and the new columns
+result <- df %>%
+  select(settlement.ID, BZB, Voters, Lamas_code) %>%
+  bind_cols(top_4_col_names_df, top_4_values_df)
+
+result$max_col_name_1 <- str_remove(result$max_col_name_1,"sum_")
+result$max_col_name_2 <- str_remove(result$max_col_name_2,"sum_")
+result$max_col_name_3 <- str_remove(result$max_col_name_3,"sum_")
+result$max_col_name_4 <- str_remove(result$max_col_name_4,"sum_")
+
+# print(result)
+return(result)
+}
+
+
+process_knesset_data <- function(df, coalition_names, opposition_names) {
+  df <- df %>%
+    rename(
+      first.party = "max_col_name_1",
+      second.party = "max_col_name_2",
+      third.party = "max_col_name_3",
+      forth.party = "max_col_name_4",
+      first.party.voters = "max_value_1",
+      second.party.voters = "max_value_2",
+      third.party.voters = "max_value_3",
+      forth.party.voters = "max_value_4"
+    )
+
+  df$Vote.precentage <- df$Voters / df$BZB
+  df$first.party.percentage <- df$first.party.voters / df$Voters
+  df$second.party.percentage <- df$second.party.voters / df$Voters
+  df$third.party.percentage <- df$third.party.voters / df$Voters
+  df$forth.party.percentage <- df$forth.party.voters / df$Voters
+  df$coalition.support <- 0
+
+  df <- df %>%
+    mutate(
+      coalition.support = case_when(
+        first.party %in% coalition_names ~ coalition.support + first.party.percentage,
+        first.party %in% opposition_names ~ coalition.support - first.party.percentage,
+        TRUE ~ coalition.support
+      )
+    ) %>%
+    mutate(
+      coalition.support = case_when(
+        second.party %in% coalition_names ~ coalition.support + second.party.percentage,
+        second.party %in% opposition_names ~ coalition.support - second.party.percentage,
+        TRUE ~ coalition.support
+      )
+    ) %>%
+    mutate(
+      coalition.support = case_when(
+        third.party %in% coalition_names ~ coalition.support + third.party.percentage,
+        third.party %in% opposition_names ~ coalition.support - third.party.percentage,
+        TRUE ~ coalition.support
+      )
+    ) %>%
+    mutate(
+      coalition.support = case_when(
+        forth.party %in% coalition_names ~ coalition.support + forth.party.percentage,
+        forth.party %in% opposition_names ~ coalition.support - forth.party.percentage,
+        TRUE ~ coalition.support
+      )
+    )
+  
+  return(df)
+}
+```
+
+```{r, summing kneset25}
+settlement_sums <- sum_columns(Kneset25, which(names(Kneset25) == "Avoda"), which(names(Kneset25) == "Ale_yarok"))
+
+
+
+Kneset25_summed <- sum_elections(settlement_sums)
+
+names <- unique(unlist(Kneset25_summed[c("max_col_name_1","max_col_name_2","max_col_name_3","max_col_name_4")]))
+names
+
+coalition_names <- c("Halicud","Shas","Tsionot_Datit","Yahadut_Hatora","Habait_Hayhudi")
+opposition_names <- c("Machane_Mamalachti","Yesh_atid","Merets","Avoda","Israel_beitenu","Reshima_Aravit","Hadash")
+
+# Kneset25_summed <- Kneset25_summed %>% 
+#   rename(
+#     first.party = "max_col_name_1",
+#     second.party = "max_col_name_2",
+#     third.party = "max_col_name_3",
+#     forth.party = "max_col_name_4",
+#     first.party.voters = "max_value_1",
+#     second.party.voters = "max_value_2",
+#     third.party.voters = "max_value_3",
+#     forth.party.voters = "max_value_4",
+#   )
+# 
+# Kneset25_summed$Vote.precentage <- Kneset25_summed$Voters/Kneset25_summed$BZB
+# Kneset25_summed$first.party.percentage <- Kneset25_summed$first.party.voters/Kneset25_summed$Voters
+# Kneset25_summed$second.party.percentage <- Kneset25_summed$second.party.voters/Kneset25_summed$Voters
+# Kneset25_summed$third.party.percentage <- Kneset25_summed$third.party.voters/Kneset25_summed$Voters
+# Kneset25_summed$forth.party.percentage <- Kneset25_summed$forth.party.voters/Kneset25_summed$Voters
+# Kneset25_summed$coalition.support <- 0
+# 
+# Kneset25_summed <- Kneset25_summed %>% 
+#   mutate(
+#     coalition.support = case_when(
+#       first.party %in% coalition_names ~ coalition.support + first.party.percentage,
+#       first.party %in% opposition_names ~ coalition.support - first.party.percentage,
+#       TRUE ~ coalition.support
+#     )
+#   ) %>%
+#   mutate(
+#     coalition.support = case_when(
+#       second.party %in% coalition_names ~ coalition.support + second.party.percentage,
+#       second.party %in% opposition_names ~ coalition.support - second.party.percentage,
+#       TRUE ~ coalition.support
+#     )
+#   ) %>%
+#   mutate(
+#     coalition.support = case_when(
+#       third.party %in% coalition_names ~ coalition.support + third.party.percentage,
+#       third.party %in% opposition_names ~ coalition.support - third.party.percentage,
+#       TRUE ~ coalition.support
+#     )
+#   ) %>%
+#   mutate(
+#     coalition.support = case_when(
+#       forth.party %in% coalition_names ~ coalition.support + forth.party.percentage,
+#       forth.party %in% opposition_names ~ coalition.support - forth.party.percentage,
+#       TRUE ~ coalition.support
+#     )
+#   )
+# 
+
+Kneset25_summed <- process_knesset_data(Kneset25_summed,coalition_names,opposition_names)
+
+Kneset25_summed
+```
+
+```{r, summing kneset24}
+
+# Example usage: Sum columns from 'Avoda' to 'Ale_yarok'
+settlement_sums_K24 <- sum_columns(Kneset24, which(names(Kneset24) == "Avoda"), which(names(Kneset24) == "Tikva_Hadasha"))
+
+
+# Apply the functions to each row
+chopped_elections_sum <- settlement_sums_K24 %>%
+  select(starts_with("sum_"))
+
+top_4_col_names <- t(apply(chopped_elections_sum, 1, top_n_col_names))
+top_4_values <- t(apply(chopped_elections_sum, 1, top_n_values))
+
+# Convert the results to dataframes and add as new columns
+top_4_col_names_df <- as.data.frame(top_4_col_names)
+top_4_values_df <- as.data.frame(top_4_values)
+
+
+# Name the new columns
+colnames(top_4_col_names_df) <- paste0("max_col_name_", 1:4)
+colnames(top_4_values_df) <- paste0("max_value_", 1:4)
+
+# Combine with the original dataframe
+chopped_elections_sum <- cbind(chopped_elections_sum, top_4_col_names_df, top_4_values_df)
+
+# Extract relevant columns to keep (settlement.ID, settlement.name, BZB, Voters, Lamas_code) and the new columns
+result <- settlement_sums_K24 %>%
+  select(settlement.ID, BZB, Voters, Lamas_code) %>%
+  bind_cols(top_4_col_names_df, top_4_values_df)
+
+result$max_col_name_1 <- str_remove(result$max_col_name_1,"sum_")
+result$max_col_name_2 <- str_remove(result$max_col_name_2,"sum_")
+result$max_col_name_3 <- str_remove(result$max_col_name_3,"sum_")
+result$max_col_name_4 <- str_remove(result$max_col_name_4,"sum_")
+
+# result
+
+Kneset24_summed <- sum_elections(settlement_sums_K24)
+# Kneset24_summed
+
+names <- unique(unlist(Kneset24_summed[c("max_col_name_1","max_col_name_2","max_col_name_3","max_col_name_4")]))
+# names
+
+coalition_names_k24 <- c("Kahul_Lavan","Merets","Yesh_atid","Avoda","Hadash_Raam","Israel_Beitenu","Reshima_aravit","Tikva_Hadasha")
+opposition_names_k24 <- c("Halicud","Zionot_datit","Shas","Yamina","Yahadut_Hatora")
+Kneset24_summed <- process_knesset_data(Kneset24_summed,coalition_names_k24,opposition_names_k24)
+Kneset24_summed
+```
+
+```{r, summing kneset23}
+
+# Example usage: Sum columns from 'Avoda' to 'Ale_yarok'
+settlement_sums_k23 <- sum_columns(Kneset23, which(names(Kneset23) == "Avoda"), which(names(Kneset23) == "Shas"))
+
+# Apply the functions to each row
+chopped_elections_sum <- settlement_sums_k23 %>%
+  select(starts_with("sum_"))
+
+top_4_col_names <- t(apply(chopped_elections_sum, 1, top_n_col_names))
+top_4_values <- t(apply(chopped_elections_sum, 1, top_n_values))
+
+# Convert the results to dataframes and add as new columns
+top_4_col_names_df <- as.data.frame(top_4_col_names)
+top_4_values_df <- as.data.frame(top_4_values)
+
+
+# Name the new columns
+colnames(top_4_col_names_df) <- paste0("max_col_name_", 1:4)
+colnames(top_4_values_df) <- paste0("max_value_", 1:4)
+
+# Combine with the original dataframe
+chopped_elections_sum <- cbind(chopped_elections_sum, top_4_col_names_df, top_4_values_df)
+
+# Extract relevant columns to keep (settlement.ID, settlement.name, BZB, Voters, Lamas_code) and the new columns
+result <- settlement_sums_k23 %>%
+  select(settlement.ID, BZB, Voters, Lamas_code) %>%
+  bind_cols(top_4_col_names_df, top_4_values_df)
+
+result$max_col_name_1 <- str_remove(result$max_col_name_1,"sum_")
+result$max_col_name_2 <- str_remove(result$max_col_name_2,"sum_")
+result$max_col_name_3 <- str_remove(result$max_col_name_3,"sum_")
+result$max_col_name_4 <- str_remove(result$max_col_name_4,"sum_")
+
+# result
+
+Kneset23_summed <- sum_elections(settlement_sums_k23)
+
+names <- unique(unlist(Kneset23_summed[c("max_col_name_1","max_col_name_2","max_col_name_3","max_col_name_4")]))
+# names
+
+coalition_names_k23 <- c("Halicud","Kahul_Lavan","Shas","Yahadut_Hatora","Avoda","Ozma_Yehudit")
+opposition_names_k23 <- c("Yamina","Hadash_Raam","Israel_Beitenu")
+Kneset23_summed <- process_knesset_data(Kneset23_summed,coalition_names_k23,opposition_names_k23)
+Kneset23_summed
+```
+
+```{r, summing kneset22}
+
+# Example usage: Sum columns from 'Avoda' to 'Ale_yarok'
+settlement_sums_k22 <- sum_columns(Kneset22, which(names(Kneset22) == "Avoda"), which(names(Kneset22) == "Shas"))
+
+
+# Apply the functions to each row
+chopped_elections_sum <- settlement_sums_k22 %>%
+  select(starts_with("sum_"))
+
+top_4_col_names <- t(apply(chopped_elections_sum, 1, top_n_col_names))
+top_4_values <- t(apply(chopped_elections_sum, 1, top_n_values))
+
+# Convert the results to dataframes and add as new columns
+top_4_col_names_df <- as.data.frame(top_4_col_names)
+top_4_values_df <- as.data.frame(top_4_values)
+
+
+# Name the new columns
+colnames(top_4_col_names_df) <- paste0("max_col_name_", 1:4)
+colnames(top_4_values_df) <- paste0("max_value_", 1:4)
+
+# Combine with the original dataframe
+chopped_elections_sum <- cbind(chopped_elections_sum, top_4_col_names_df, top_4_values_df)
+
+# Extract relevant columns to keep (settlement.ID, settlement.name, BZB, Voters, Lamas_code) and the new columns
+result <- settlement_sums_k22 %>%
+  select(settlement.ID, BZB, Voters, Lamas_code) %>%
+  bind_cols(top_4_col_names_df, top_4_values_df)
+
+result$max_col_name_1 <- str_remove(result$max_col_name_1,"sum_")
+result$max_col_name_2 <- str_remove(result$max_col_name_2,"sum_")
+result$max_col_name_3 <- str_remove(result$max_col_name_3,"sum_")
+result$max_col_name_4 <- str_remove(result$max_col_name_4,"sum_")
+
+result
+
+Kneset22_summed <- sum_elections(settlement_sums_k22)
+names <- unique(unlist(Kneset22_summed[c("max_col_name_1","max_col_name_2","max_col_name_3","max_col_name_4")]))
+names
+
+coalition_names_k22 <- c("Halicud","Shas","Yahadut_Hatora","Yamina","Otsma_yehudit")
+opposition_names_k22 <- c("Merets","Kahul_Lavan","Avoda","Hadash_Raam","Israel_Beitenu")
+Kneset22_summed <- process_knesset_data(Kneset22_summed,coalition_names_k22,opposition_names_k22)
+Kneset22_summed
+
+```
+
+```{r, summing kneset21}
+
+# Example usage: Sum columns from 'Avoda' to 'Ale_yarok'
+settlement_sums <- sum_columns(Kneset21, which(names(Kneset21) == "Avoda"), which(names(Kneset21) == "Shas"))
+
+# Apply the functions to each row
+chopped_elections_sum <- settlement_sums %>%
+  select(starts_with("sum_"))
+
+top_4_col_names <- t(apply(chopped_elections_sum, 1, top_n_col_names))
+top_4_values <- t(apply(chopped_elections_sum, 1, top_n_values))
+
+# Convert the results to dataframes and add as new columns
+top_4_col_names_df <- as.data.frame(top_4_col_names)
+top_4_values_df <- as.data.frame(top_4_values)
+
+
+# Name the new columns
+colnames(top_4_col_names_df) <- paste0("max_col_name_", 1:4)
+colnames(top_4_values_df) <- paste0("max_value_", 1:4)
+
+# Combine with the original dataframe
+chopped_elections_sum <- cbind(chopped_elections_sum, top_4_col_names_df, top_4_values_df)
+
+# Extract relevant columns to keep (settlement.ID, settlement.name, BZB, Voters, Lamas_code) and the new columns
+result <- settlement_sums %>%
+  select(settlement.ID, BZB, Voters, Lamas_code) %>%
+  bind_cols(top_4_col_names_df, top_4_values_df)
+
+result$max_col_name_1 <- str_remove(result$max_col_name_1,"sum_")
+result$max_col_name_2 <- str_remove(result$max_col_name_2,"sum_")
+result$max_col_name_3 <- str_remove(result$max_col_name_3,"sum_")
+result$max_col_name_4 <- str_remove(result$max_col_name_4,"sum_")
+
+Kneset21_summed <- sum_elections(settlement_sums)
+names <- unique(unlist(Kneset21_summed[c("max_col_name_1","max_col_name_2","max_col_name_3","max_col_name_4")]))
+names
+
+coalition_names_k21 <- c("Halicud","Bait_Yehudi","Shas","Yamin_Hadash","Yahadut_Hatora","Kulanu_Yamin","Israel_Beitenu")
+opposition_names_k21 <- c("Kahul_lavan","Avoda","Merets","Hadash","Balad","Reshima_Aravit")
+Kneset21_summed <- process_knesset_data(Kneset21_summed,coalition_names_k21,opposition_names_k21)
+Kneset21_summed
+
+```
+
+```{r,  summing kneset20}
+
+# Example usage: Sum columns from 'Avoda' to 'Ale_yarok'
+settlement_sums_k20 <- sum_columns(Kneset20, which(names(Kneset20) == "Mahane_Zioni"), which(names(Kneset20) == "Shas"))
+
+# Apply the functions to each row
+chopped_elections_sum <- settlement_sums_k20 %>%
+  select(starts_with("sum_"))
+
+top_4_col_names <- t(apply(chopped_elections_sum, 1, top_n_col_names))
+top_4_values <- t(apply(chopped_elections_sum, 1, top_n_values))
+
+# Convert the results to dataframes and add as new columns
+top_4_col_names_df <- as.data.frame(top_4_col_names)
+top_4_values_df <- as.data.frame(top_4_values)
+
+
+# Name the new columns
+colnames(top_4_col_names_df) <- paste0("max_col_name_", 1:4)
+colnames(top_4_values_df) <- paste0("max_value_", 1:4)
+
+# Combine with the original dataframe
+chopped_elections_sum <- cbind(chopped_elections_sum, top_4_col_names_df, top_4_values_df)
+
+# Extract relevant columns to keep (settlement.ID, settlement.name, BZB, Voters, Lamas_code) and the new columns
+result <- settlement_sums_k20 %>%
+  select(settlement.ID, BZB, Voters, Lamas_code) %>%
+  bind_cols(top_4_col_names_df, top_4_values_df)
+
+result$max_col_name_1 <- str_remove(result$max_col_name_1,"sum_")
+result$max_col_name_2 <- str_remove(result$max_col_name_2,"sum_")
+result$max_col_name_3 <- str_remove(result$max_col_name_3,"sum_")
+result$max_col_name_4 <- str_remove(result$max_col_name_4,"sum_")
+
+Kneset20_summed <- sum_elections(settlement_sums_k20)
+Kneset20_summed
+
+names <- unique(unlist(Kneset20_summed[c("max_col_name_1","max_col_name_2","max_col_name_3","max_col_name_4")]))
+names
+
+coalition_names_k20 <- c("Halicud","Habait_Hayehudi","Shas","Yahadut_Hatora","Kulanu","Israel_beitenu")
+opposition_names_k20 <- c("Mahane_Zioni","Yahad","Merets","Reshima_meshutefet","Yesh_atid")
+Kneset20_summed <- process_knesset_data(Kneset20_summed,coalition_names_k20,opposition_names_k20)
+Kneset20_summed
+
+```
+```{r}
+write.csv(Kneset20_summed,"../data/Updated/Kneset20_summed.csv")
+write.csv(Kneset21_summed,"../data/Updated/Kneset21_summed.csv")
+write.csv(Kneset22_summed,"../data/Updated/Kneset22_summed.csv")
+write.csv(Kneset23_summed,"../data/Updated/Kneset23_summed.csv")
+write.csv(Kneset24_summed,"../data/Updated/Kneset24_summed.csv")
+write.csv(Kneset25_summed,"../data/Updated/Kneset25_summed.csv")
+```
+

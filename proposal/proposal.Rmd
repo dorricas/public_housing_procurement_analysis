@@ -293,8 +293,9 @@ ggplot(data = Vacant_apartments_count,
   labs(x = "City", y = "Aartments", title = "Number of available apartments by city",fill = "Number of rooms",subtitle = "collected in May 24")
 ```
 ```{r echo=FALSE}
-
 custom_colors <- c("2017" = "#4281A4", "2018" = "#9CAFB7", "2019" = "#EAD2AC", "2020" = "#E6B89C", "2021" = "#FE938C", "2022" = "#DC3F34", "2023" = "#870E06", "2024" = "#3E3E3B")
+
+# Purcheuses
 
 ggplot(data = Purcheuses,
        mapping = aes( x= city_lms_name, fill = factor(year))) +
@@ -302,7 +303,22 @@ ggplot(data = Purcheuses,
   scale_fill_manual(values = custom_colors) +
   theme(axis.text.x=element_text(angle = -90, hjust = 0))+
   labs(x = "City", y = "Apartments bought", title = "Apartments bought each year by City", fill = "Year", subtitle = "From 2017 to 2024")
+
+Purcheues_summary <- Purcheuses %>%
+  group_by(city_lms_name, year) %>%
+  summarise(total_apartments = sum(x3_rooms_apartments + x4_rooms_apartments))
+
+ggplot(data = Purcheues_summary, aes(x = city_lms_name, y = total_apartments, fill = factor(year))) +
+  geom_bar(stat = "identity") +
+  scale_fill_manual(values = custom_colors) +
+  theme_minimal() +  # Use a minimal theme for simplicity
+  theme(axis.text.x = element_text(angle = -90, hjust = 0)) +
+  labs(x = "City", y = "Total Apartments Bought",
+       title = "Total Apartments Bought by City, Stacked by Year",
+       fill = "Year")
+
 ```
+
 
 ```{r echo=FALSE}
 Properties_room_sum <- Properties_rooms %>% 
