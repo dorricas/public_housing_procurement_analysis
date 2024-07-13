@@ -1,0 +1,564 @@
+---
+title: "model fitting"
+author: "shahaf"
+date: "2024-06-29"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r load-packages, message=FALSE, include=FALSE}
+library(knitr)
+library(tidyverse)
+library(broom)
+library(htmltools)
+library(janitor)
+library(kableExtra)
+library(dplyr)
+library(car)
+library(infer)
+library(boot)
+```
+
+```{r, include=FALSE}
+# read CSV
+VacantApt <- read.csv("../data/Updated/vacant_apartments.csv")
+PropertiesRooms <- read.csv("../data/Updated/properties_by_rooms.csv")
+Purchases <- read.csv("../data/Updated/property_purchases.csv")
+
+Kneset20 <- read.csv("../data/Updated/Kneset20_summed.csv")
+Kneset21 <- read.csv("../data/Updated/Kneset21_summed.csv")
+Kneset22 <- read.csv("../data/Updated/Kneset22_summed.csv")
+Kneset23 <- read.csv("../data/Updated/Kneset23_summed.csv")
+Kneset24 <- read.csv("../data/Updated/Kneset24_summed.csv")
+Kneset25 <- read.csv("../data/Updated/Kneset25_summed.csv")
+```
+
+
+```{r, include=FALSE}
+# Data preprocess
+PropertiesRooms <- drop_na(PropertiesRooms) # 4 apartments who add no floor data was removed
+# replacing NA's with 0's when there where no apartment purchased.
+Purchases <- Purchases %>%
+  mutate(
+    X3.rooms.apartments = ifelse(is.na(X3.rooms.apartments), 0, X3.rooms.apartments),
+    X4..rooms.apartments = ifelse(is.na(X4..rooms.apartments), 0, X4..rooms.apartments),
+    average.price..NIS..3.rooms.apartments = ifelse(is.na(average.price..NIS..3.rooms.apartments), 0, average.price..NIS..3.rooms.apartments),
+    average.price..NIS..4..rooms.apartments = ifelse(is.na(average.price..NIS..4..rooms.apartments), 0, average.price..NIS..4..rooms.apartments)
+  )
+
+Purchases <- Purchases %>% clean_names()
+```
+
+
+
+```{r, include=FALSE}
+# filter purchuses by year and join with relevant elections csv
+Joined_Purch_Kneset20 <- Purchases %>%
+  filter(year < 2019) %>%
+  left_join(Kneset20, by = c("lamas_code" = "Lamas_code"))
+
+Joined_Purch_Kneset21 <- Purchases %>%
+  filter(year == 2019) %>%
+  left_join(Kneset21, by = c("lamas_code" = "Lamas_code"))
+
+Joined_Purch_Kneset22 <- Purchases %>%
+  filter(year == 2020) %>%
+  left_join(Kneset22, by = c("lamas_code" = "Lamas_code"))
+
+Joined_Purch_Kneset23 <- Purchases %>%
+  filter(year == 2021) %>%
+  left_join(Kneset23, by = c("lamas_code" = "Lamas_code"))
+
+Joined_Purch_Kneset24 <- Purchases %>%
+  filter(year == 2022) %>%
+  left_join(Kneset24, by = c("lamas_code" = "Lamas_code"))
+
+Joined_Purch_Kneset25 <- Purchases %>%
+  filter(year > 2022) %>%
+  left_join(Kneset25, by = c("lamas_code" = "Lamas_code"))
+
+# combining results
+Purchuses_Elections <- bind_rows(Joined_Purch_Kneset20, Joined_Purch_Kneset21, Joined_Purch_Kneset22, Joined_Purch_Kneset23, Joined_Purch_Kneset24, Joined_Purch_Kneset25)
+```
+
+
+```{r}
+# Adding features
+Purchuses_Elections <- Purchuses_Elections %>%
+  mutate(
+    x3_average_paid_in_Mil = (x3_rooms_apartments * average_price_nis_3_rooms_apartments) / 1000000,
+    x4_average_paid_in_Mil = (x4_rooms_apartments * average_price_nis_4_rooms_apartments) / 1000000,
+    total_paid_in_Mil = x3_average_paid_in_Mil + x4_average_paid_in_Mil,
+    sum_apartments = x3_rooms_apartments + x4_rooms_apartments
+  )
+```
+
+
+```{r}
+# selecting relevant columns
+Purchuses_Elections <- Purchuses_Elections %>%
+  dplyr::select(lamas_name, year, x3_rooms_apartments, x4_rooms_apartments, x3_average_paid_in_Mil, x4_average_paid_in_Mil, sum_apartments, total_paid_in_Mil, first.party, second.party, third.party, forth.party, first.party.percentage, second.party.percentage, third.party.percentage, forth.party.percentage, coalition.support, BZB, Vote.precentage, average_price_nis_3_rooms_apartments, average_price_nis_4_rooms_apartments)
+
+# Fix party name
+Purchuses_Elections <- Purchuses_Elections %>%
+  mutate(
+    first.party = case_when(
+    first.party == "Kahul_lavan" ~ "Kahul_Lavan",
+    first.party == "Yahadut_Hator" ~ "Yahadut_Hatora",
+    first.party == "Israel_beitenu" ~ "Israel_Beitenu",
+    first.party == "Zionot_datit" ~ "Tsionot_Datit",
+    TRUE ~ first.party
+    ),
+    second.party = case_when(
+    second.party == "Kahul_lavan" ~ "Kahul_Lavan",
+    second.party == "Yahadut_Hator" ~ "Yahadut_Hatora",
+    second.party == "Israel_beitenu" ~ "Israel_Beitenu",
+    second.party == "Zionot_datit" ~ "Tsionot_Datit",
+    TRUE ~ second.party
+    ),
+    third.party = case_when(
+    third.party == "Kahul_lavan" ~ "Kahul_Lavan",
+    third.party == "Yahadut_Hator" ~ "Yahadut_Hatora",
+    third.party == "Israel_beitenu" ~ "Israel_Beitenu",
+    third.party == "Zionot_datit" ~ "Tsionot_Datit",
+    TRUE ~ third.party
+    ),
+    forth.party = case_when(
+    forth.party == "Kahul_lavan" ~ "Kahul_Lavan",
+    forth.party == "Yahadut_Hator" ~ "Yahadut_Hatora",
+    forth.party == "Israel_beitenu" ~ "Israel_Beitenu",
+    forth.party == "Zionot_datit" ~ "Tsionot_Datit",
+    TRUE ~ forth.party
+    )
+  )
+
+# apply factor
+Purchuses_Elections <- Purchuses_Elections %>%
+  mutate(
+    first.party = as.factor(first.party),
+    second.party = as.factor(second.party),
+    third.party = as.factor(third.party),
+    forth.party = as.factor(forth.party),
+    )
+
+```
+
+
+```{r, include=FALSE}
+PropertiesRooms <- PropertiesRooms %>%
+  mutate(
+    Total_Rooms = NoRooms + OneRooms + TwoRooms + ThreeRooms + FourRooms + FiveRooms + SixRooms + SevenRooms + EightRooms + NineRooms + TenRooms + MoreRooms
+  )
+```
+
+
+```{r}
+# Group by lamas_code and sum Total_Rooms for each city in PropertiesRooms
+PropertiesRooms_Summary <- PropertiesRooms %>%
+  group_by(lamas_code, CityLMSName) %>%
+  summarise(Total_Rooms_Sum = sum(Total_Rooms, na.rm = TRUE)) %>%
+  ungroup()
+
+# Join with Kneset25 and replace NA's in Total_Rooms with 0
+Joined_Rooms_Kneset25 <- PropertiesRooms_Summary %>%
+  mutate(lamas_code = as.numeric(lamas_code)) %>%
+  right_join(Kneset25, by = c("lamas_code" = "Lamas_code")) %>%
+  select(lamas_code, CityLMSName, Total_Rooms = Total_Rooms_Sum, first.party, first.party.percentage,
+         second.party, second.party.percentage, third.party, third.party.percentage,
+         forth.party, forth.party.percentage, coalition.support) %>%
+  mutate(Total_Rooms = ifelse(is.na(Total_Rooms), 0, Total_Rooms))
+```
+
+
+```{r, include=FALSE}
+# Join with Kneset25 for VacantApt
+Joined_Vacant_Kneset25 <- VacantApt %>%
+  select(CityLmsCode, CityLmsName) %>%
+  group_by(CityLmsCode, CityLmsName) %>%
+  summarise(Count_Vacant = n()) %>%
+  left_join(Kneset25, by = c("CityLmsCode" = "Lamas_code"))
+
+Joined_Vacant_Kneset25 <- Joined_Vacant_Kneset25 %>%
+  select(CityLmsCode, CityLmsName, Count_Vacant, first.party, first.party.percentage, second.party, second.party.percentage, third.party, third.party.percentage, forth.party, forth.party.percentage, coalition.support)
+```
+
+
+```{r}
+# checking linear correlation
+Purchuses_Elections %>%
+  dplyr::select(year, x3_rooms_apartments, x4_rooms_apartments, total_paid_in_Mil, coalition.support, average_price_nis_3_rooms_apartments, average_price_nis_4_rooms_apartments) %>%
+  cor()
+```
+
+
+
+
+# Models - Purchases
+Trying to fit multi-variable lm and glm to fit the data
+
+
+```{r, include=FALSE}
+# linear regression: predict total amount spent per city by the top four party percentage
+percentage_totPaid_model <- lm(total_paid_in_Mil ~ first.party.percentage + second.party.percentage + third.party.percentage + forth.party.percentage + coalition.support, data = Purchuses_Elections)
+summary(percentage_totPaid_model)
+crPlots(percentage_totPaid_model)
+```
+
+
+```{r}
+# poisson regression: predict log of num apartments purchased by coalition support
+coalition_sumApt_model <- glm(sum_apartments ~ coalition.support, data = Purchuses_Elections, family = poisson)
+summary(coalition_sumApt_model)
+```
+
+### log(sum_apartments) = 2.33383 + 0.34278 * coalition.support  
+### This model is statistacly significant showing that the government buys more apartments if you support the coalition
+
+
+```{r}
+# poisson regression: predict log of num apartments purchased by coalition support and party percentage
+coalition_partyPer_sumApt_model <- glm(sum_apartments ~ first.party.percentage + second.party.percentage + third.party.percentage + forth.party.percentage + coalition.support, data = Purchuses_Elections, family = poisson)
+summary(coalition_partyPer_sumApt_model)
+```
+
+### this model presents a better fit comparing to the previus model, we still see that higher coalition.support leads to more apartments purchases, but strong support of a party decreases that amount.  
+Yet in this model the percentage as more weight as it is a part of coalition.support feature
+
+
+```{r}
+# poisson regression: predict log of num apartments purchased by party percentage
+partyPer_sumApt_model <- glm(sum_apartments ~ first.party.percentage + second.party.percentage + third.party.percentage + forth.party.percentage, data = Purchuses_Elections, family = poisson)
+summary(partyPer_sumApt_model)
+```
+
+### this model is poorer (by AIC) than the previous model, yet shows that strong support in top 3 parties decreases the amount of apartments purchases
+
+
+```{r}
+# poisson regression: predict log of num apartments purchased by party percentage, party and support
+Party_sum_model <- glm(sum_apartments ~ first.party.percentage + second.party.percentage + third.party.percentage + forth.party.percentage + coalition.support + first.party + second.party + third.party + forth.party, data = Purchuses_Elections, family = poisson)
+summary(Party_sum_model)
+```
+
+### this model fits the data better than all previous models (by AIC and residual deviance), this model strethen previous results that stronger coalition support increases the amount of purchased apartmnets. Yet, strong support of one party decreases the amount of purchased apartments.
+
+
+```{r}
+# poisson regression: predict log of num apartments purchased by coalition support and vote percentage
+coalition_votePer_model <- glm(sum_apartments ~ coalition.support + Vote.precentage, data = Purchuses_Elections, family = poisson)
+summary(coalition_votePer_model)
+```
+
+
+
+# Alternative explenatory
+```{r}
+alternative_model1 <- lm(x3_rooms_apartments ~ average_price_nis_3_rooms_apartments, data = Purchuses_Elections)
+summary(alternative_model1)
+
+alternative_model2 <- lm(x4_rooms_apartments ~ average_price_nis_4_rooms_apartments, data = Purchuses_Elections)
+summary(alternative_model2)
+
+plot(Purchuses_Elections$average_price_nis_3_rooms_apartments, Purchuses_Elections$x3_rooms_apartments, 
+     xlab = "average price", ylab = "3 rooms apartments", 
+     main = "Linear Regression: 3 rooms apartments vs average price")
+abline(alternative_model1, col = "blue")
+abline(alternative_model2, col = "red")
+```
+
+### Significant but very poor R-squared, not a good explenatory variable.
+
+
+# Model visualization
+### chosen model: coalition_sumApt_model, df: Purchuses_Elections
+
+
+
+```{r}
+# Fit Poisson regression model
+coalition_sumApt_model <- glm(sum_apartments ~ coalition.support, data = Purchuses_Elections, family = poisson)
+
+# Predict values
+predicted <- predict(coalition_sumApt_model, type = "response")
+
+# Calculate errors
+MAE <- mean(abs(Purchuses_Elections$sum_apartments - predicted))
+RMSE <- sqrt(mean((Purchuses_Elections$sum_apartments - predicted)^2))
+
+# Display results
+cat("Mean Absolute Error (MAE):", MAE, "\n")
+cat("Root Mean Squared Error (RMSE):", RMSE, "\n")
+```
+
+
+```{r}
+# Poisson glm for a the data
+ggplot(data = Purchuses_Elections, aes(x = coalition.support, y = sum_apartments)) +
+  geom_point(alpha = 0.3) +
+  geom_smooth(aes(x = coalition.support, y = sum_apartments), se = TRUE, method = 'glm', method.args = list(family = 'poisson')) +
+  labs(title = "Coalition Support vs Sum of Apartments",
+       x = "Coalition Support",
+       y = "Sum of Apartments",
+    ) + 
+  theme_minimal()
+```
+
+```{r}
+# Poisson glm colored by year
+ggplot(data = Purchuses_Elections, aes(x = coalition.support, y = sum_apartments, color = as.factor(year))) +
+  geom_point(alpha = 0.3) +
+  geom_smooth(aes(x = coalition.support, y = sum_apartments), se = FALSE, method = 'glm', method.args = list(family = 'poisson')) +
+  labs(title = "Coalition Support vs Sum of Apartments",
+       x = "Coalition Support",
+       y = "Sum of Apartments",
+       color = "Year") + 
+  theme_minimal()
+```
+
+```{r}
+# Poisson glm facet by year
+ggplot(data = Purchuses_Elections, aes(x = coalition.support, y = sum_apartments, color = as.factor(year))) +
+  geom_point(alpha = 0.3) +
+  geom_smooth(aes(x = coalition.support, y = sum_apartments), se = TRUE, method = 'glm', method.args = list(family = 'poisson')) +
+  labs(title = "Coalition Support vs Sum of Apartments",
+       x = "Coalition Support",
+       y = "Sum of Apartments",
+       color = "Year") + 
+  theme_minimal() +
+  facet_wrap(~ year, ncol = 4) +
+  theme(panel.spacing = unit(1, "lines"))
+```
+
+```{r}
+# bar plot for 2017
+
+# Filter data for 2017
+data_year_2017 <- Purchuses_Elections %>% filter(year == 2017)
+
+# Fit the model
+model_2017 <- glm(sum_apartments ~ coalition.support, data = data_year_2017, family = poisson())
+
+# Calculate the RMSE
+predicted <- predict(model_2017, type = "response")
+rmse <- sqrt(mean((data_year_2017$sum_apartments - predicted)^2))
+
+# Create ggplot with enhanced aesthetics
+ggplot(data_year_2017, aes(x = coalition.support, y = sum_apartments)) +
+  geom_point(alpha = 0.2, color = "#CB485C") +  # Increase alpha transparency and change point color
+  geom_smooth(aes(color = "Smoothing Curve"), 
+              method = 'glm', method.args = list(family = 'poisson'), se = TRUE, 
+              linetype = "solid", size = 1.5) +  # Adjust line type for smooth curve
+  labs(x = "Coalition Support", y = "Sum of Apartments") +
+  scale_color_manual(values = c("Smoothing Curve" = "#CB485C"), guide = FALSE) +  # Manually set color for smooth curve and hide legend
+  theme_minimal() +  # Use minimal theme for cleaner appearance
+  theme(plot.title = element_text(size = 16, face = "bold"),  # Adjust title size and style
+        axis.title = element_text(size = 14),  # Adjust axis label size
+        axis.text = element_text(size = 12)) +  # Adjust axis tick label size
+  annotate("text", x = Inf, y = Inf, label = paste("RMSE:", round(rmse, 2)), 
+           hjust = 1.1, vjust = 1.5, size = 5, color = "black")  # Annotate RMSE on the plot
+```
+
+```{r}
+# bar plot for 2018
+
+# Filter data for 2018
+data_year_2018 <- Purchuses_Elections %>% filter(year == 2018)
+
+# Fit the model
+model_2018 <- glm(sum_apartments ~ coalition.support, data = data_year_2018, family = poisson())
+
+# Calculate the RMSE
+predicted <- predict(model_2018, type = "response")
+rmse <- sqrt(mean((data_year_2018$sum_apartments - predicted)^2))
+
+# Create ggplot with enhanced aesthetics
+ggplot(data_year_2018, aes(x = coalition.support, y = sum_apartments)) +
+  geom_point(alpha = 0.2, color = "#CB0511") +  # Increase alpha transparency and change point color
+  geom_smooth(aes(color = "Smoothing Curve"), 
+              method = 'glm', method.args = list(family = 'poisson'), se = TRUE, 
+              linetype = "solid", size = 1.5) +  # Adjust line type for smooth curve
+  labs(x = "Coalition Support", y = "Sum of Apartments") +
+  scale_color_manual(values = c("Smoothing Curve" = "#CB0511"), guide = FALSE) +  # Manually set color for smooth curve and hide legend
+  theme_minimal() +  # Use minimal theme for cleaner appearance
+  theme(plot.title = element_text(size = 16, face = "bold"),  # Adjust title size and style
+        axis.title = element_text(size = 14),  # Adjust axis label size
+        axis.text = element_text(size = 12)) +  # Adjust axis tick label size
+  annotate("text", x = Inf, y = Inf, label = paste("RMSE:", round(rmse, 2)), 
+           hjust = 1.1, vjust = 1.5, size = 5, color = "black")  # Annotate RMSE on the plot
+```
+
+```{r}
+# bar plot for 2019
+
+# Filter data for 2019
+data_year_2019 <- Purchuses_Elections %>% filter(year == 2019)
+
+# Fit the model
+model_2019 <- glm(sum_apartments ~ coalition.support, data = data_year_2019, family = poisson())
+
+# Calculate the RMSE
+predicted <- predict(model_2019, type = "response")
+rmse <- sqrt(mean((data_year_2019$sum_apartments - predicted)^2))
+
+# Create ggplot with enhanced aesthetics
+ggplot(data_year_2019, aes(x = coalition.support, y = sum_apartments)) +
+  geom_point(alpha = 0.2, color = "#B4010B") +  # Increase alpha transparency and change point color
+  geom_smooth(aes(color = "Smoothing Curve"), 
+              method = 'glm', method.args = list(family = 'poisson'), se = TRUE, 
+              linetype = "solid", size = 1.5) +  # Adjust line type for smooth curve
+  labs(x = "Coalition Support", y = "Sum of Apartments") +
+  scale_color_manual(values = c("Smoothing Curve" = "#B4010B"), guide = FALSE) +  # Manually set color for smooth curve and hide legend
+  theme_minimal() +  # Use minimal theme for cleaner appearance
+  theme(plot.title = element_text(size = 16, face = "bold"),  # Adjust title size and style
+        axis.title = element_text(size = 14),  # Adjust axis label size
+        axis.text = element_text(size = 12)) +  # Adjust axis tick label size
+  annotate("text", x = Inf, y = Inf, label = paste("RMSE:", round(rmse, 2)), 
+           hjust = 1.1, vjust = 1.5, size = 5, color = "black")  # Annotate RMSE on the plot
+```
+
+```{r}
+# bar plot for 2020
+
+# Filter data for 2020
+data_year_2020 <- Purchuses_Elections %>% filter(year == 2020)
+
+# Fit the model
+model_2020 <- glm(sum_apartments ~ coalition.support, data = data_year_2020, family = poisson())
+
+# Calculate the RMSE
+predicted <- predict(model_2020, type = "response")
+rmse <- sqrt(mean((data_year_2020$sum_apartments - predicted)^2))
+
+# Create ggplot with enhanced aesthetics
+ggplot(data_year_2020, aes(x = coalition.support, y = sum_apartments)) +
+  geom_point(alpha = 0.2, color = "#740410") +  # Increase alpha transparency and change point color
+  geom_smooth(aes(color = "Smoothing Curve"), 
+              method = 'glm', method.args = list(family = 'poisson'), se = TRUE, 
+              linetype = "solid", size = 1.5) +  # Adjust line type for smooth curve
+  labs(x = "Coalition Support", y = "Sum of Apartments") +
+  scale_color_manual(values = c("Smoothing Curve" = "#740410"), guide = FALSE) +  # Manually set color for smooth curve and hide legend
+  theme_minimal() +  # Use minimal theme for cleaner appearance
+  theme(plot.title = element_text(size = 16, face = "bold"),  # Adjust title size and style
+        axis.title = element_text(size = 14),  # Adjust axis label size
+        axis.text = element_text(size = 12)) +  # Adjust axis tick label size
+  annotate("text", x = Inf, y = Inf, label = paste("RMSE:", round(rmse, 2)), 
+           hjust = 1.1, vjust = 1.5, size = 5, color = "black")  # Annotate RMSE on the plot
+```
+
+```{r}
+# bar plot for 2021
+
+# Filter data for 2021
+data_year_2021 <- Purchuses_Elections %>% filter(year == 2021)
+
+# Fit the model
+model_2021 <- glm(sum_apartments ~ coalition.support, data = data_year_2021, family = poisson())
+
+# Calculate the RMSE
+predicted <- predict(model_2021, type = "response")
+rmse <- sqrt(mean((data_year_2021$sum_apartments - predicted)^2))
+
+# Create ggplot with enhanced aesthetics
+ggplot(data_year_2021, aes(x = coalition.support, y = sum_apartments)) +
+  geom_point(alpha = 0.2, color = "#CB485C") +  # Increase alpha transparency and change point color
+  geom_smooth(aes(color = "Smoothing Curve"), 
+              method = 'glm', method.args = list(family = 'poisson'), se = TRUE, 
+              linetype = "solid", size = 1.5) +  # Adjust line type for smooth curve
+  labs(x = "Coalition Support", y = "Sum of Apartments") +
+  scale_color_manual(values = c("Smoothing Curve" = "#CB485C"), guide = FALSE) +  # Manually set color for smooth curve and hide legend
+  theme_minimal() +  # Use minimal theme for cleaner appearance
+  theme(plot.title = element_text(size = 16, face = "bold"),  # Adjust title size and style
+        axis.title = element_text(size = 14),  # Adjust axis label size
+        axis.text = element_text(size = 12)) +  # Adjust axis tick label size
+  annotate("text", x = Inf, y = Inf, label = paste("RMSE:", round(rmse, 2)), 
+           hjust = 1.1, vjust = 1.5, size = 5, color = "black")  # Annotate RMSE on the plot
+```
+
+```{r}
+# bar plot for 2022
+
+# Filter data for 2022
+data_year_2022 <- Purchuses_Elections %>% filter(year == 2022)
+
+# Fit the model
+model_2022 <- glm(sum_apartments ~ coalition.support, data = data_year_2022, family = poisson())
+
+# Calculate the RMSE
+predicted <- predict(model_2022, type = "response")
+rmse <- sqrt(mean((data_year_2022$sum_apartments - predicted)^2))
+
+# Create ggplot with enhanced aesthetics
+ggplot(data_year_2022, aes(x = coalition.support, y = sum_apartments)) +
+  geom_point(alpha = 0.2, color = "#CB0511") +  # Increase alpha transparency and change point color
+  geom_smooth(aes(color = "Smoothing Curve"), 
+              method = 'glm', method.args = list(family = 'poisson'), se = TRUE, 
+              linetype = "solid", size = 1.5) +  # Adjust line type for smooth curve
+  labs(x = "Coalition Support", y = "Sum of Apartments") +
+  scale_color_manual(values = c("Smoothing Curve" = "#CB0511"), guide = FALSE) +  # Manually set color for smooth curve and hide legend
+  theme_minimal() +  # Use minimal theme for cleaner appearance
+  theme(plot.title = element_text(size = 16, face = "bold"),  # Adjust title size and style
+        axis.title = element_text(size = 14),  # Adjust axis label size
+        axis.text = element_text(size = 12)) +  # Adjust axis tick label size
+  annotate("text", x = Inf, y = Inf, label = paste("RMSE:", round(rmse, 2)), 
+           hjust = 1.1, vjust = 1.5, size = 5, color = "black")  # Annotate RMSE on the plot
+```
+
+```{r}
+# bar plot for 2023
+
+# Filter data for 2023
+data_year_2023 <- Purchuses_Elections %>% filter(year == 2023)
+
+# Fit the model
+model_2023 <- glm(sum_apartments ~ coalition.support, data = data_year_2023, family = poisson())
+
+# Calculate the RMSE
+predicted <- predict(model_2023, type = "response")
+rmse <- sqrt(mean((data_year_2023$sum_apartments - predicted)^2))
+
+# Create ggplot with enhanced aesthetics
+ggplot(data_year_2023, aes(x = coalition.support, y = sum_apartments)) +
+  geom_point(alpha = 0.2, color = "#B4010B") +  # Increase alpha transparency and change point color
+  geom_smooth(aes(color = "Smoothing Curve"), 
+              method = 'glm', method.args = list(family = 'poisson'), se = TRUE, 
+              linetype = "solid", size = 1.5) +  # Adjust line type for smooth curve
+  labs(x = "Coalition Support", y = "Sum of Apartments") +
+  scale_color_manual(values = c("Smoothing Curve" = "#B4010B"), guide = FALSE) +  # Manually set color for smooth curve and hide legend
+  theme_minimal() +  # Use minimal theme for cleaner appearance
+  theme(plot.title = element_text(size = 16, face = "bold"),  # Adjust title size and style
+        axis.title = element_text(size = 14),  # Adjust axis label size
+        axis.text = element_text(size = 12)) +  # Adjust axis tick label size
+  annotate("text", x = Inf, y = Inf, label = paste("RMSE:", round(rmse, 2)), 
+           hjust = 1.1, vjust = 1.5, size = 5, color = "black")  # Annotate RMSE on the plot
+```
+
+```{r}
+# Filter data for 2024
+data_year_2024 <- Purchuses_Elections %>% filter(year == 2024)
+
+# Fit the model
+model_2024 <- glm(sum_apartments ~ coalition.support, data = data_year_2024, family = poisson())
+
+# Calculate the RMSE
+predicted <- predict(model_2024, type = "response")
+rmse <- sqrt(mean((data_year_2024$sum_apartments - predicted)^2))
+
+# Create ggplot with enhanced aesthetics
+ggplot(data_year_2024, aes(x = coalition.support, y = sum_apartments)) +
+  geom_point(alpha = 0.2, color = "#740410") +  # Increase alpha transparency and change point color
+  geom_smooth(aes(color = "Smoothing Curve"), 
+              method = 'glm', method.args = list(family = 'poisson'), se = TRUE, 
+              linetype = "solid", size = 1.5) +  # Adjust line type for smooth curve
+  labs(x = "Coalition Support", y = "Sum of Apartments") +
+  scale_color_manual(values = c("Smoothing Curve" = "#740410"), guide = FALSE) +  # Manually set color for smooth curve and hide legend
+  theme_minimal() +  # Use minimal theme for cleaner appearance
+  theme(plot.title = element_text(size = 16, face = "bold"),  # Adjust title size and style
+        axis.title = element_text(size = 14),  # Adjust axis label size
+        axis.text = element_text(size = 12)) +  # Adjust axis tick label size
+  annotate("text", x = Inf, y = Inf, label = paste("RMSE:", round(rmse, 2)), 
+           hjust = 1.1, vjust = 1.5, size = 5, color = "black")  # Annotate RMSE on the plot
+```
+
