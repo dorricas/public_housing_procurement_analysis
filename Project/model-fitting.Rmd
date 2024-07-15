@@ -323,13 +323,15 @@ ggplot(data = Purchuses_Elections, aes(x = coalition.support, y = sum_apartments
 ggplot(data = Purchuses_Elections, aes(x = coalition.support, y = sum_apartments, color = as.factor(year))) +
   geom_point(alpha = 0.3) +
   geom_smooth(aes(x = coalition.support, y = sum_apartments), se = TRUE, method = 'glm', method.args = list(family = 'poisson')) +
-  labs(title = "Coalition Support vs Sum of Apartments",
+  labs(title = "Coalition Support vs Sum of Apartments from 2017 to 2024",
+       subtitle = "Each plot represents a settlement, showing its coalition support and amount of apartments purchased that year",
        x = "Coalition Support",
        y = "Sum of Apartments",
        color = "Year") + 
   theme_minimal() +
   facet_wrap(~ year, ncol = 4) +
-  theme(panel.spacing = unit(1, "lines"))
+  theme(panel.spacing = unit(1, "lines"),
+        plot.subtitle = element_text(size = 8))
 ```
 
 ```{r}
