@@ -1,0 +1,138 @@
+---
+title: "Data Project"
+output: html_document
+date: "2024-07-13"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r load-packages, message=FALSE, include=FALSE}
+library(knitr)
+library(tidyverse)
+library(broom)
+library(htmltools)
+library(janitor)
+library(kableExtra)
+library(readxl)
+library(scales)
+```
+
+
+
+```{r}
+Election_results25 <- read.csv(file.path("..", "data", "Updated", "Kneset25_summed.csv"))
+
+cities_and_socio <- read_excel(file.path("..", "data", "Updated", "Lamas cities and socio.xlsx"))
+
+Purcheuses <- read.csv(file.path("..", "data", "Updated", "property_purchases.csv"))
+
+properties <- read.csv(file.path("..", "data", "Updated", "properties_by_rooms.csv"))
+
+vacant_apartments <- read.csv(file.path("..", "data", "Updated", "vacant_apartments.csv"))
+
+Election_results25
+
+cities_and_socio
+
+Purcheuses
+
+properties
+
+vacant_apartments
+
+
+```
+
+
+```{r}
+relevant_cities <- distinct(Purcheuses, Lamas_code)
+relevant_cities_and_socio <- inner_join(relevant_cities,
+                                        cities_and_socio,
+                                        by = c("Lamas_code" = "Lamas_Code"))
+
+cities_and_socio_and_kneset <- inner_join(relevant_cities_and_socio,
+                                          Election_results25,
+                                          by = c("Lamas_code" = "Lamas_code"))
+
+ggplot(cities_and_socio_and_kneset, aes(x = BZB, y = `2019 cluster`)) +
+  geom_point() + 
+  scale_x_continuous(labels = comma)
+
+```
+```{r}
+haifa_pt_purcheuses <- Purcheuses %>%
+  filter(Lamas_code %in% c(4000, 7900))
+
+haifa_pt_purcheuses <- haifa_pt_purcheuses %>%
+  mutate(
+    `X3.rooms.apartments` = replace_na(`X3.rooms.apartments`, 0),
+    `average.price..NIS..3.rooms.apartments` = replace_na(`average.price..NIS..3.rooms.apartments`, 0),
+    `X4..rooms.apartments` = replace_na(`X4..rooms.apartments`, 0),
+    `average.price..NIS..4..rooms.apartments` = replace_na(`average.price..NIS..4..rooms.apartments`, 0)
+  ) %>%
+  mutate(
+    total_spent_money = `X3.rooms.apartments` * `average.price..NIS..3.rooms.apartments` +
+                        `X4..rooms.apartments` * `average.price..NIS..4..rooms.apartments`,
+    total_apartments = `X3.rooms.apartments` + `X4..rooms.apartments`
+  )
+
+haifa_pt_purcheuses
+
+```
+
+
+
+```{r}
+
+ggplot(haifa_pt_purcheuses, aes(x = year, y = total_spent_money, fill = Lamas_name)) +
+  geom_bar(stat = "identity", position = "dodge", width = 0.8) +
+  labs(title = "Amount of money spent on apartments purchasing\nfor every year in Haifa and Petah Tiqwa",
+       x = "year",
+       y = "total spent money (NIS)",
+       fill = "city") +
+  scale_y_continuous(labels = label_comma()) +
+  theme_minimal()
+
+```
+
+
+
+```{r}
+
+ggplot(haifa_pt_purcheuses, aes(x = year, y = total_apartments, fill = Lamas_name)) +
+  geom_bar(stat = "identity", position = "dodge", width = 0.8) +
+  labs(title = "number of apartments purchased\nfor every year in Haifa and Petah Tiqwa",
+       x = "year",
+       y = "num of properties",
+       fill = "city") +
+  scale_y_continuous(labels = label_comma()) +
+  theme_minimal()
+
+```
+
+
+
+
+
+```{r}
+haifa_pt_properties <- properties %>%
+  filter(lamas_code %in% c(4000, 7900))
+
+
+
+haifa_pt_properties <- haifa_pt_properties %>%
+  mutate(total_appartments = NoRooms + OneRooms + TwoRooms +
+           ThreeRooms + FourRooms + FiveRooms +
+           SixRooms + SevenRooms + EightRooms +
+           NineRooms + TenRooms + MoreRooms)
+
+haifa_pt_properties <- haifa_pt_properties %>%
+  group_by(lamas_code) %>%
+  summarise(amount_of_appartments = sum(total_appartments))
+
+haifa_pt_properties
+
+```
