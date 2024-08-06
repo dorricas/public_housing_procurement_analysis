@@ -141,6 +141,10 @@ Purcheuses_sum2_liable
 Purcheuses_sum2_liable <-  left_join(Purcheuses_sum2_liable,Socio, by = "lamas_code" )
 ```
 ```{r}
+```
+
+
+```{r}
 Purcheuses_sum2_liable
 pos_Apt_model_socio <- glm(apartment_count ~familes.with.kids.allowance + Families.with.more.than.4.kids + people.with.general.disability + elederly + kids.with.disabilities + x2019_cluster,
 data = Purcheuses_sum2_liable, family = poisson)
@@ -167,6 +171,46 @@ cat("RMSE:", rmse, "\n")
 cat("MAE:", mae, "\n")
 cat("SD of Residuals:", sd_resid, "\n")
 ```
+
+```{r}
+library(MASS)
+
+# Initial model
+initial_model <- glm(apartment_count ~ familes.with.kids.allowance + Families.with.more.than.4.kids + people.with.general.disability + elederly + kids.with.disabilities + x2019_cluster,
+                     data = Purcheuses_sum2_liable, family = poisson)
+
+# Perform stepwise regression
+stepwise_model <- stepAIC(initial_model, direction = "both")
+
+# Summarize the final model
+summary(stepwise_model)
+
+# Predicted values from the final model
+predicted <- predict(stepwise_model, type = "response")
+
+# Actual values
+actual <- Purcheuses_sum2_liable$apartment_count
+
+# Compute RMSE
+rmse <- sqrt(mean((predicted - actual)^2))
+
+# Compute MAE
+mae <- mean(abs(predicted - actual))
+
+# Compute SD of residuals
+residuals <- actual - predicted
+sd_resid <- sd(residuals)
+
+# Print results
+cat("RMSE:", rmse, "\n")
+cat("MAE:", mae, "\n")
+cat("SD of Residuals:", sd_resid, "\n")
+
+```
+
+
+```{r}
+```
 ```{r}
 # Purcheuses_sum2_liable
 
@@ -175,12 +219,6 @@ data = Purcheuses_sum2_liable, family = poisson)
 summary(lm_model_socio)
 ```
 
-
-```{r}
-lm_model <- lm(apartment_count ~familes.with.kids.allowance + Families.with.more.than.4.kids + people.with.general.disability + elederly + kids.with.disabilities + x2019_cluster,
-data = Purcheuses_sum2_liable)
-summary(lm_model)
-```
 
 ```{r}
 Kneset21_summed <- read.csv("../data/Updated/Kneset21_summed.csv")
@@ -200,18 +238,9 @@ summary(lm_model2)
 
 
 ```
-```{r}
-# Augment the model data
-augmented_data <- augment(lm_model2)
 
-# Residuals vs Leverage plot
-ggplot(augmented_data, aes(.hat, .std.resid)) +
-  geom_point() +
-  geom_smooth(method = "loess") +
-  labs(x = "Leverage", y = "Standardized Residuals") +
-  ggtitle("Residuals vs Leverage")
 
-```
+
 ```{r}
 # Initial model (intercept only)
 initial_model <- lm(coalition_support ~ 0, data = check_relation)
@@ -225,9 +254,4 @@ stepwise_model <- step(initial_model, scope = list(lower = initial_model, upper 
 summary(stepwise_model)
 ```
 
-```{r}
-check_model <- glm(coalition_support ~familes_with_kids_allowance + families_with_more_than_4_kids + people_with_general_disability + elederly + kids_with_disabilities + x2019_cluster,
-data = check_relation, family = poisson)
-summary(check_model)
-```
 
